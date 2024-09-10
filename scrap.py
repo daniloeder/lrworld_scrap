@@ -7,6 +7,10 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 import time, re
 
+# EBAY LOGIN CREDENTIALS
+USER_EMAIL = ''
+USER_PASSWORD = ''
+
 # LRWORLD SCRAPING FUNCTIONS
 def add_ebay_button():
     button_script = """
@@ -340,12 +344,12 @@ def ebay_login():
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'userid')))
         if len(driver.find_elements(By.ID, 'userid')) > 0:
             try:
-                driver.find_element(By.ID, 'userid').send_keys('')
+                driver.find_element(By.ID, 'userid').send_keys(USER_EMAIL)
                 driver.find_element(By.ID, 'signin-continue-btn').click()
                 time.sleep(3)
             except:
                 pass
-        driver.find_element(By.ID, 'pass').send_keys('')
+        driver.find_element(By.ID, 'pass').send_keys(USER_PASSWORD)
         driver.find_element(By.ID, 'sgnBt').click()
     except Exception as e:
         print(f"Error while logging in to eBay: {e}")
@@ -536,7 +540,7 @@ def get_subcategorie_products():
 
 def scrap_all_subcategories(category):
     to_scrap = []
-    for sub_category in category['sub_categories'][:2]:
+    for sub_category in category['sub_categories']:
         for class_item in sub_category['classes']:
             driver.get(class_item['url'])
             time.sleep(1)
@@ -591,7 +595,7 @@ while True:
                 previous_url = driver.current_url
                 products_to_scrap = check_for_scrap_all(categories)
                 if products_to_scrap:
-                    scraped_products = scrap_products(products_to_scrap[:5])
+                    scraped_products = scrap_products(products_to_scrap)
                     products.extend(scraped_products)
                     if len(products) > 0:
                         ebay_login()
