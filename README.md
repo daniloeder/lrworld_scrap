@@ -12,19 +12,31 @@ This is a Python application for scraping product data from the LR World website
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/...
+git clone https://github.com/daniloeder/lrworld_scrap.git
 cd ./shop_lrworld_scrap
 
 ```
 
-### Step 2: Install Dependencies
+### Step 2: Create environment
+
+```
+python -m venv venv
+
+venv\Scripts\activate
+
+.\venv\Scripts\Activate
+
+```
+
+
+### Step 3: Install Dependencies
 
 ```
 pip install -r requirements.txt
 
 ```
 
-###  Run Script
+### Step 4: Run Script
 ```
 python scrap.py
 
