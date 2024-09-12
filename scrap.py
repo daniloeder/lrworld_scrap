@@ -429,7 +429,7 @@ def scrap_products(products_to_scrap):
             product['category'] += ' ' + product_scrap['class']
             products.append(product)
         else:
-            print('Error while scraping product:', product['title'])
+            print('Error while scraping product:', product_scrap['title'])
         i += 1
     return products
 
@@ -521,19 +521,20 @@ def check_for_scrap_all(categories):
 def get_subcategorie_products():
     list_items = []
     try:
-        items_total = driver.find_element(By.CLASS_NAME, 'items-total').text.split(' ')[-1]
-        while len(driver.find_elements(By.TAG_NAME, 'article')) < int(items_total):
-            print(items_total, len(driver.find_elements(By.TAG_NAME, 'article')))
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(1)
-        items = driver.find_elements(By.TAG_NAME, 'article')
-        for item in items:
-            content = item.find_element(By.CLASS_NAME, 'content')
-            title = content.find_element(By.TAG_NAME, 'h3').text
-            price = content.find_element(By.CLASS_NAME, 'price').text
-            image = item.find_element(By.CLASS_NAME, 'image').find_element(By.TAG_NAME, 'img').get_attribute('src')
-            url = item.find_element(By.CLASS_NAME, 'image').find_element(By.TAG_NAME, 'a').get_attribute('href')
-            list_items.append({'title': title, 'price': price, 'image': image, 'url': url})
+        if len(driver.find_elements(By.CLASS_NAME, 'items-total')):
+            items_total = driver.find_element(By.CLASS_NAME, 'items-total').text.split(' ')[-1]
+            while len(driver.find_elements(By.TAG_NAME, 'article')) < int(items_total):
+                print(items_total, len(driver.find_elements(By.TAG_NAME, 'article')))
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(1)
+            items = driver.find_elements(By.TAG_NAME, 'article')
+            for item in items:
+                content = item.find_element(By.CLASS_NAME, 'content')
+                title = content.find_element(By.TAG_NAME, 'h3').text
+                price = content.find_element(By.CLASS_NAME, 'price').text
+                image = item.find_element(By.CLASS_NAME, 'image').find_element(By.TAG_NAME, 'img').get_attribute('src')
+                url = item.find_element(By.CLASS_NAME, 'image').find_element(By.TAG_NAME, 'a').get_attribute('href')
+                list_items.append({'title': title, 'price': price, 'image': image, 'url': url})
     except Exception as e:
         print(f"Error while scraping subcategory: {e}")
     return list_items
