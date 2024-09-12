@@ -344,7 +344,7 @@ def ebay_login():
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'userid')))
         if len(driver.find_elements(By.ID, 'userid')) > 0:
             if not USER_EMAIL:
-                print("Missing eBay login email, fill it manually...")
+                print("Missing eBay login email, fill it manually...\n\n")
                 while 'signin.ebay.com' in driver.current_url:
                     time.sleep(1)
                 return True
@@ -365,7 +365,9 @@ def ebay_login():
         print(f"Error while logging in to eBay: {e}")
 
 def list_products_in_ebay(products):
+    i = 1
     for product in products:
+        print(f"{i}/{len(products)} Listing product: {product['name']}")
         driver.get('https://www.ebay.com/sl/sell')
         time.sleep(1)
         # template-list__list
@@ -390,6 +392,8 @@ def list_products_in_ebay(products):
             driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
         else:
             print('No template-list__list found, skipping...')
+        print(f"Product {product['name']} listed!\n\n")
+        i += 1
 
 def show_scraped_list(products):
     new_menu = '''
@@ -433,6 +437,10 @@ def scrap_products(products_to_scrap):
     for product_scrap in products_to_scrap:
         print(f"{i}/{len(products_to_scrap)} Scraping product: {product_scrap['title']}")
         driver.get(product_scrap['url'])
+        for _ in range(6):
+            if len(driver.find_elements(By.CLASS_NAME, 'price')) > 0:
+                break
+            time.sleep(1)
         time.sleep(1)
         product = scrap_product()
         if product:
@@ -477,9 +485,11 @@ def scrap_product():
                 mililiters = extras[0].text
                 extras = extras[1:]
                 product['mililiters'] = mililiters
-        main_description = driver.find_element(By.CLASS_NAME, 'product-description-list')
-        main_description_html = main_description.get_attribute('innerHTML')
-        product['description'] = re.sub(r'\s+', ' ', main_description_html).strip()
+        product['description'] = ''
+        if len(driver.find_elements(By.CLASS_NAME, 'product-description-list')) > 0:
+            main_description = driver.find_element(By.CLASS_NAME, 'product-description-list')
+            main_description_html = main_description.get_attribute('innerHTML')
+            product['description'] = re.sub(r'\s+', ' ', main_description_html).strip()
         information = driver.find_element(By.ID, 'moreInformation')
         sections = driver.find_element(By.CLASS_NAME, 'title-wrapper').find_elements(By.TAG_NAME, 'div')
         description_html = ''
@@ -523,7 +533,7 @@ def scrap_product():
 
 def check_for_scrap_all(categories):
     for page in ['nutrition.html', 'supplements.html', 'care.html', 'highlights.html', '/brands?']:
-        if '@scrapAll' in driver.current_url and  page in driver.current_url:
+        if page in driver.current_url:
             for category in categories:
                 if page == category['name'].lower().replace(" ", "_")+".html" or page == '/brands?':
                     return scrap_all_subcategories(category)
@@ -601,6 +611,7 @@ while True:
         while not categories:
             print('Getting categories...')
             menu, categories = get_categories()
+            print("Done!")
         url_data = driver.current_url.split('/')
         if len(products) > 0 and previous_url != driver.current_url and 'signin.ebay.com' not in driver.current_url:
                 show_scraped_list(products)
@@ -608,15 +619,20 @@ while True:
             if previous_url != driver.current_url:
                 if menu and menu != driver.find_element(By.ID, 'dl-menu'):
                     driver.execute_script("arguments[0].innerHTML = arguments[1];", driver.find_element(By.ID, 'dl-menu'), menu)
+                if '@scrapAll' in driver.current_url:
+                    print("Scraping products list...")
+                    products_to_scrap = check_for_scrap_all(categories)
+                    if products_to_scrap:
+                        print(f"Done!, Found {len(products_to_scrap)} products to scrap")
+                        scraped_products = scrap_products(products_to_scrap)
+                        products.extend(scraped_products)
+                        if len(products) > 0:
+                            while not loged_in:
+                                loged_in = ebay_login()
+                            list_products_in_ebay(products)
+                    else:
+                        print("No products to scrap found!")
                 previous_url = driver.current_url
-                products_to_scrap = check_for_scrap_all(categories)
-                if products_to_scrap:
-                    scraped_products = scrap_products(products_to_scrap)
-                    products.extend(scraped_products)
-                    if len(products) > 0:
-                        while not loged_in:
-                            loged_in = ebay_login()
-                        list_products_in_ebay(products)
             if 'product' in url_data:
                 add_ebay_button()
                 try:

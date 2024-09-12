@@ -13,7 +13,7 @@ This is a Python application for scraping product data from the LR World website
 
 ```bash
 git clone https://github.com/daniloeder/lrworld_scrap.git
-cd ./shop_lrworld_scrap
+cd lrworld_scrap
 
 ```
 
