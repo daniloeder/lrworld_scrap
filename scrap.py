@@ -563,7 +563,10 @@ def scrap_all_subcategories(category):
 
 # Automatically download and use the correct version of ChromeDriver
 options = webdriver.ChromeOptions()
+options.add_argument("--enable-features=UseOzonePlatform")
+options.add_argument("--ozone-platform=wayland")
 options.add_argument("--log-level=1")
+
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=options)
 
