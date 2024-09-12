@@ -336,21 +336,31 @@ def ebay_login():
         driver.get('https://ebay.com/')
         time.sleep(1)
         try:
-            if 'signin.ebay.com' not in driver.find_element(By.ID, 'gh-top').find_element(By.TAG_NAME, 'a').get_attribute('href'):
+            if 'signin.ebay.com' not in driver.find_element(By.ID, 'gh-top').find_element(By.TAG_NAME, 'a').get_attribute('href') and 'captcha' not in driver.current_url:
                 return True
         except:
             pass
         driver.get('https://signin.ebay.com/')
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'userid')))
         if len(driver.find_elements(By.ID, 'userid')) > 0:
-            try:
-                driver.find_element(By.ID, 'userid').send_keys(USER_EMAIL)
-                driver.find_element(By.ID, 'signin-continue-btn').click()
-                time.sleep(3)
-            except:
-                pass
-        driver.find_element(By.ID, 'pass').send_keys(USER_PASSWORD)
-        driver.find_element(By.ID, 'sgnBt').click()
+            if not USER_EMAIL:
+                print("Missing eBay login email, fill it manually...")
+                while 'signin.ebay.com' in driver.current_url:
+                    time.sleep(1)
+                return True
+            else:
+                try:
+                    driver.find_element(By.ID, 'userid').send_keys(USER_EMAIL)
+                    driver.find_element(By.ID, 'signin-continue-btn').click()
+                    time.sleep(3)
+                except:
+                    pass
+        if not USER_PASSWORD:
+            WebDriverWait(driver, 50).until(EC.presence_of_element_located((By.ID, 'pass')))
+        else:
+            driver.find_element(By.ID, 'pass').send_keys(USER_PASSWORD)
+        if len(driver.find_elements(By.ID, 'sgnBt')) > 0:
+            driver.find_element(By.ID, 'sgnBt').click()
     except Exception as e:
         print(f"Error while logging in to eBay: {e}")
 
@@ -577,6 +587,7 @@ product = {
 categories = None
 menu = None
 previous_url = None
+loged_in = False
 
 # Main loop to handle navigation and scraping
 while True:
@@ -591,18 +602,17 @@ while True:
         if len(products) > 0 and previous_url != driver.current_url and 'signin.ebay.com' not in driver.current_url:
                 show_scraped_list(products)
         if 'shop.lrworld.com' in url_data:
-            print("Different URL", previous_url != driver.current_url, driver.current_url)
             if previous_url != driver.current_url:
                 if menu and menu != driver.find_element(By.ID, 'dl-menu'):
                     driver.execute_script("arguments[0].innerHTML = arguments[1];", driver.find_element(By.ID, 'dl-menu'), menu)
                 previous_url = driver.current_url
-                print("A")
                 products_to_scrap = check_for_scrap_all(categories)
                 if products_to_scrap:
                     scraped_products = scrap_products(products_to_scrap)
                     products.extend(scraped_products)
                     if len(products) > 0:
-                        ebay_login()
+                        while not loged_in:
+                            loged_in = ebay_login()
                         list_products_in_ebay(products)
             if 'product' in url_data:
                 add_ebay_button()
