@@ -512,10 +512,10 @@ def scrap_product():
     return False
 
 def check_for_scrap_all(categories):
-    for page in ['nutrition.html', 'figur.html', 'pflege.html', 'duft.html', 'lr_world.html', 'marken.html']:
+    for page in ['nutrition.html', 'supplements.html', 'care.html', 'highlights.html', '/brands?']:
         if '@scrapAll' in driver.current_url and  page in driver.current_url:
             for category in categories:
-                if page == category['name'].lower().replace(" ", "_")+".html":
+                if page == category['name'].lower().replace(" ", "_")+".html" or page == '/brands?':
                     return scrap_all_subcategories(category)
 
 def get_subcategorie_products():
@@ -552,8 +552,10 @@ def scrap_all_subcategories(category):
     return to_scrap
 
 # Automatically download and use the correct version of ChromeDriver
+options = webdriver.ChromeOptions()
+options.add_argument("--log-level=1")
 service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service)
+driver = webdriver.Chrome(service=service, options=options)
 
 # Navigate to the main page
 #driver.get('https://shop.lrworld.com/home/ch/de?PHP=kEVOq3BtkLDyv91WMUw1Ag%3D%3D&casrnc=e2aaf')
@@ -578,8 +580,7 @@ previous_url = None
 
 # Main loop to handle navigation and scraping
 while True:
-    #try:
-    if True:
+    try:
         #print('Current URL:', driver.current_url)
         if 'fff' in driver.current_url:
             break
@@ -590,10 +591,12 @@ while True:
         if len(products) > 0 and previous_url != driver.current_url and 'signin.ebay.com' not in driver.current_url:
                 show_scraped_list(products)
         if 'shop.lrworld.com' in url_data:
+            print("Different URL", previous_url != driver.current_url, driver.current_url)
             if previous_url != driver.current_url:
                 if menu and menu != driver.find_element(By.ID, 'dl-menu'):
                     driver.execute_script("arguments[0].innerHTML = arguments[1];", driver.find_element(By.ID, 'dl-menu'), menu)
                 previous_url = driver.current_url
+                print("A")
                 products_to_scrap = check_for_scrap_all(categories)
                 if products_to_scrap:
                     scraped_products = scrap_products(products_to_scrap)
@@ -660,8 +663,7 @@ while True:
             time.sleep(1)
         else:
             driver.get('https://shop.lrworld.com/home/ch/de?PHP=kEVOq3BtkLDyv91WMUw1Ag%3D%3D&casrnc=e2aaf')
-    #except Exception as e:
-    if False:
+    except Exception as e:
         print(f"Error occurred: {e}")
         break
     time.sleep(1)
