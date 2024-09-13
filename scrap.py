@@ -365,7 +365,35 @@ def ebay_login():
         print(f"Error while logging in to eBay: {e}")
 
 def list_products_in_ebay(products):
+    driver.get('https://www.ebay.com/sl/sell')
+    time.sleep(3)
     i = 1
+    if len(driver.find_elements(By.CLASS_NAME, 'template-list__list')) == 0:
+        try:
+            print('No Templates Found, creating...')
+            driver.get('https://www.ebay.com/lstng/template?mode=AddItem')
+            time.sleep(1)
+            # templateName
+            for i in range(8):
+                if len(driver.find_elements(By.NAME, 'templateName')) > 0:
+                    break
+                time.sleep(1)
+            if len(driver.find_elements(By.NAME, 'templateName')) == 0:
+                print('Cannot create template, create one and try again...')
+                driver.get('https://www.ebay.com/sl/sell')
+                #return
+            title_input = driver.find_element(By.NAME, 'templateName')
+            title_input.clear()
+            title_input.send_keys("New Template")
+            # class="btn btn--large btn--primary"
+            driver.find_element(By.CLASS_NAME, 'btn--large').click()
+            time.sleep(3)
+        except Exception as e:
+            print(f"Error while creating template, create one and try again: {e}")
+    while len(driver.find_elements(By.CLASS_NAME, 'template-list__list')) == 0:
+        print('No template-list__list found, create a template and navigate to this page again...')
+        time.sleep(1)
+    print("Templage found, listing products...")
     for product in products:
         print(f"{i}/{len(products)} Listing product: {product['name']}")
         driver.get('https://www.ebay.com/sl/sell')
@@ -390,9 +418,9 @@ def list_products_in_ebay(products):
             time.sleep(2)
             print("Done!")
             driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
+            print(f"Product {product['name']} listed!\n\n")
         else:
             print('No template-list__list found, skipping...')
-        print(f"Product {product['name']} listed!\n\n")
         i += 1
 
 def show_scraped_list(products):
