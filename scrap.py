@@ -576,6 +576,8 @@ options = webdriver.ChromeOptions()
 options.add_argument("--enable-features=UseOzonePlatform")
 options.add_argument("--ozone-platform=wayland")
 options.add_argument("--log-level=1")
+options.add_argument("--incognito")
+options.add_argument("--guest")
 
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=options)
