@@ -330,7 +330,7 @@ def check():
                 break
     except:
         pass
-    return False
+    return
 
 def add_pricing(product):
     # ADD PRICING
@@ -587,11 +587,10 @@ def get_subcategorie_products():
         if len(driver.find_elements(By.CLASS_NAME, 'items-total')):
             items_total = driver.find_element(By.CLASS_NAME, 'items-total').text.split(' ')[-1]
             while len(driver.find_elements(By.TAG_NAME, 'article')) < int(items_total):
-                print(items_total, len(driver.find_elements(By.TAG_NAME, 'article')))
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(1)
             items = driver.find_elements(By.TAG_NAME, 'article')
-            for item in items:
+            for item in items[-1:]:
                 content = item.find_element(By.CLASS_NAME, 'content')
                 title = content.find_element(By.TAG_NAME, 'h3').text
                 price = content.find_element(By.CLASS_NAME, 'price').text
@@ -604,12 +603,12 @@ def get_subcategorie_products():
 
 def scrap_all_subcategories(category):
     to_scrap = []
-    for sub_category in category['sub_categories']:
-        for class_item in sub_category['classes']:
+    for sub_category in category['sub_categories'][-1:]:
+        for class_item in sub_category['classes'][-1:]:
             driver.get(class_item['url'])
             time.sleep(1)
             new_products = get_subcategorie_products()
-            for product in new_products:
+            for product in new_products[-1:]:
                 product['class'] = class_item['name']
                 to_scrap.append(product)
     return to_scrap
