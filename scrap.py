@@ -379,17 +379,33 @@ def ebay_login():
     except Exception as e:
         print(f"Error while logging in to eBay: {e}")
 
+def check_for_template_list():
+    templates = []
+    block = driver.find_elements(By.CLASS_NAME, 'template-list')
+    print("INSIDE TEMPLATES", driver.current_url)
+    if len(block) > 0:
+        template_list = driver.find_element(By.CLASS_NAME, 'template-list').find_elements(By.TAG_NAME, 'ul')
+        if len(template_list) > 0:
+            templates = driver.find_element(By.CLASS_NAME, 'template-list').find_element(By.TAG_NAME, 'ul').find_elements(By.TAG_NAME, 'li')
+    if len(templates):
+        print("Templates...")
+        for template in templates:
+            print(template.text)
+    else:
+        print("No template found...")
+    return templates
+
 def list_products_in_ebay(products):
     driver.get('https://www.ebay.com/sl/sell')
     time.sleep(3)
     i = 1
-    if len(driver.find_elements(By.CLASS_NAME, 'template-list__list')) == 0:
+    if len(check_for_template_list()) == 0:
         try:
             print('No Templates Found, creating...')
             driver.get('https://www.ebay.com/lstng/template?mode=AddItem')
             time.sleep(1)
             # templateName
-            for i in range(8):
+            for _ in range(8):
                 if len(driver.find_elements(By.NAME, 'templateName')) > 0:
                     break
                 time.sleep(1)
@@ -406,8 +422,8 @@ def list_products_in_ebay(products):
             time.sleep(2)
         except Exception as e:
             print(f"Error while creating template, create one and try again: {e}")
-    while len(driver.find_elements(By.CLASS_NAME, 'template-list__list')) == 0:
-        print('No template-list__list found, create a template and navigate to this page again...')
+    while len(check_for_template_list()) == 0:
+        print('No template found...')
         time.sleep(1)
     print("Templage found, listing products...")
     for product in products:
@@ -675,7 +691,7 @@ while True:
                         if len(products) > 0:
                             while not loged_in:
                                 loged_in = ebay_login()
-                            list_products_in_ebay(products)
+                            list_products_in_ebay(products[-1:])
                     else:
                         print("No products to scrap found!")
                 previous_url = driver.current_url
