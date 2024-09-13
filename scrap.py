@@ -400,9 +400,10 @@ def list_products_in_ebay(products):
             title_input = driver.find_element(By.NAME, 'templateName')
             title_input.clear()
             title_input.send_keys("New Template")
-            # class="btn btn--large btn--primary"
             driver.find_element(By.CLASS_NAME, 'btn--large').click()
             time.sleep(3)
+            driver.get('https://www.ebay.com/sl/sell')
+            time.sleep(2)
         except Exception as e:
             print(f"Error while creating template, create one and try again: {e}")
     while len(driver.find_elements(By.CLASS_NAME, 'template-list__list')) == 0:
