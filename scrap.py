@@ -345,6 +345,43 @@ def add_pricing(product):
     except Exception as e:
         print(f"Error while adding pricing: {e}")
 
+def add_shipping():
+    # ADD SHIPPING
+    print('Setting shipping...')
+    try:
+        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__shipping'))
+        time.sleep(1)
+        shipping_block = driver.find_element(By.CLASS_NAME, 'summary__shipping')
+        # class="summary__shipping--section-container shipping-settings-container"
+        preferences_block = shipping_block.find_element(By.CLASS_NAME, 'shipping-settings-container')
+        button = preferences_block.find_element(By.TAG_NAME, 'button')
+        button.click()
+        # itemLocationCountry
+        prefecences_settings = driver.find_element(By.CLASS_NAME, 'se-panel-container__body')
+        # itemLocationCountry
+        country_input = prefecences_settings.find_element(By.NAME, 'itemLocationCountry')
+        country_input.click()
+        time.sleep(0.1)
+        while country_input.get_attribute('value'):
+            country_input.send_keys('\b')
+        country_input.clear()
+        time.sleep(0.1)
+        country_input.send_keys('Germany')
+        time.sleep(0.1)
+        # combobox__option
+        prefecences_settings.find_element(By.CLASS_NAME, 'combobox__option').click()
+        # itemLocation
+        if len(prefecences_settings.find_elements(By.NAME, 'itemLocation')) > 0:
+            location_input = prefecences_settings.find_element(By.NAME, 'itemLocation')
+            location_input.send_keys('d-59227')
+        # itemLocationCityState
+        location_city_state = prefecences_settings.find_element(By.NAME, 'itemLocationCityState')
+        location_city_state.clear()
+        location_city_state.send_keys('Ahlen')
+        driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').find_element(By.TAG_NAME, 'button').click()
+    except Exception as e:
+        print(f"Error while adding shipping: {e}")
+
 def ebay_login():
     print('Logging in to eBay...')
     try:
@@ -450,6 +487,7 @@ def list_products_in_ebay(products):
             time.sleep(2)
             add_pricing(product)
             time.sleep(2)
+            add_shipping()
             print("Done!")
             driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
             print(f"Product {product['name']} listed!\n\n")
@@ -735,6 +773,7 @@ while True:
                         time.sleep(2)
                         add_pricing(product)
                         time.sleep(2)
+                        add_shipping()
                         print("Done!")
                         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
                         while True:
