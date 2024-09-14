@@ -213,17 +213,20 @@ def add_category(product):
                 time.sleep(0.1)
         time.sleep(1)
         driver.find_element(By.CLASS_NAME, 'se-field-card').click()
-        driver.find_element(By.CLASS_NAME, 'textbox__control').send_keys(product['category'])
-        if True:#product['category'] in ["Nutrition", "Care"]:
-            time.sleep(2)
-            driver.find_element(By.CLASS_NAME, 'se-radio-group__option').click()
-            for _ in range(5):
-                try:
-                    time.sleep(1)
-                    driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').click()
-                    break
-                except:
-                    pass
+        driver.find_element(By.CLASS_NAME, 'textbox__control').send_keys('Other Health & Beauty')
+        time.sleep(2)
+        for option in driver.find_elements(By.NAME, 'categoryId'):
+            if option.get_attribute('value') == '1277':
+                option.click()
+                break
+        driver.find_element(By.CLASS_NAME, 'se-radio-group__option').click()
+        for _ in range(5):
+            try:
+                time.sleep(1)
+                driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').click()
+                break
+            except:
+                pass
         while len(driver.find_elements(By.CLASS_NAME, 'lightbox-dialog__main')) > 0:
             time.sleep(0.2)
     except Exception as e:
