@@ -382,7 +382,6 @@ def ebay_login():
 def check_for_template_list():
     templates = []
     block = driver.find_elements(By.CLASS_NAME, 'template-list')
-    print("INSIDE TEMPLATES", driver.current_url)
     if len(block) > 0:
         template_list = driver.find_element(By.CLASS_NAME, 'template-list').find_elements(By.TAG_NAME, 'ul')
         if len(template_list) > 0:
@@ -396,10 +395,11 @@ def check_for_template_list():
     return templates
 
 def list_products_in_ebay(products):
-    driver.get('https://www.ebay.com/sl/sell')
+    driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
     time.sleep(3)
     i = 1
-    if len(check_for_template_list()) == 0:
+    templates_list = check_for_template_list()
+    if len(templates_list) == 0:
         try:
             print('No Templates Found, creating...')
             driver.get('https://www.ebay.com/lstng/template?mode=AddItem')
@@ -411,28 +411,30 @@ def list_products_in_ebay(products):
                 time.sleep(1)
             if len(driver.find_elements(By.NAME, 'templateName')) == 0:
                 print('Cannot create template, create one and try again...')
-                driver.get('https://www.ebay.com/sl/sell')
+                driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
                 #return
             title_input = driver.find_element(By.NAME, 'templateName')
             title_input.clear()
             title_input.send_keys("New Template")
             driver.find_element(By.CLASS_NAME, 'btn--large').click()
             time.sleep(3)
-            driver.get('https://www.ebay.com/sl/sell')
+            driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
             time.sleep(2)
         except Exception as e:
             print(f"Error while creating template, create one and try again: {e}")
-    while len(check_for_template_list()) == 0:
+    templates_list = check_for_template_list()
+    if len(templates_list) == 0:
         print('No template found...')
-        time.sleep(1)
+        return []
     print("Templage found, listing products...")
     for product in products:
         print(f"{i}/{len(products)} Listing product: {product['name']}")
-        driver.get('https://www.ebay.com/sl/sell')
+        driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+        templates_list = check_for_template_list()
         time.sleep(1)
         # template-list__list
         if len(driver.find_elements(By.CLASS_NAME, 'template-list__list')) > 0:
-            driver.find_element(By.CLASS_NAME, 'template-list__list').click()
+            templates_list[0].click()
             time.sleep(1)
             add_images(product)
             time.sleep(2)
@@ -700,7 +702,7 @@ while True:
                 try:
                     if WebDriverWait(driver, 10).until(EC.title_is("start-scraping")):
                         product = scrap_product()
-                        driver.get('https://www.ebay.com/sl/sell')
+                        driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
                 except:
                     pass
             else:
@@ -709,7 +711,7 @@ while True:
         elif 'www.ebay.com' in url_data:
             if 'https://www.ebay.com/sl/prelist/?lrworld' in driver.current_url:
                 product = products[int(driver.current_url.split('lrworld_')[-1])]
-                driver.get('https://www.ebay.com/sl/sell')
+                driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
             else:
                 if not product['filled']:
                     if 'drafts' in url_data:
