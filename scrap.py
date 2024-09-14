@@ -198,7 +198,7 @@ def add_title(product):
     except Exception as e:
         print(f"Error while adding title: {e}")
 
-def add_category(product):
+def add_category():
     print('Selecting category...')
     try:
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__category'))
@@ -219,7 +219,6 @@ def add_category(product):
             if option.get_attribute('value') == '1277':
                 option.click()
                 break
-        driver.find_element(By.CLASS_NAME, 'se-radio-group__option').click()
         for _ in range(5):
             try:
                 time.sleep(1)
@@ -241,13 +240,15 @@ def add_specifics(product):
         specifics_block = driver.find_element(By.CLASS_NAME, 'summary__attributes--container')
         required = specifics_block.find_elements(By.CLASS_NAME, 'summary__attributes--section-container')[0]
         required_fields = required.find_elements(By.CLASS_NAME, 'summary__attributes--fields')
+        other = specifics_block.find_elements(By.CLASS_NAME, 'summary__attributes--section-container')[1]
+        other_fields = other.find_elements(By.CLASS_NAME, 'summary__attributes--fields')
         for field in required_fields:
             if len(field.find_elements(By.NAME, 'attributes.Brand')) > 0:
                 while True:
                     try:
                         driver.find_element(By.NAME, 'attributes.Brand').click()
                         time.sleep(0.1)
-                        driver.find_element(By.NAME, 'search-box-attributesBrand').send_keys(product['brand'])
+                        driver.find_element(By.NAME, 'search-box-attributesBrand').send_keys("LR World")
                         break
                     except:
                         time.sleep(0.1)
@@ -278,9 +279,23 @@ def add_specifics(product):
                 options = field.find_elements(By.CLASS_NAME, 'se-filter-menu-button__add-custom-value')
                 if len(options) > 0:
                     options[0].click()
-        # get name universalProductCode
-        if product['upc'] and len(driver.find_elements(By.NAME, 'universalProductCode')) > 0:
-            driver.find_element(By.NAME, 'universalProductCode').send_keys(product['upc'])
+            # attributes.Country/Region of Manufacture
+        for field in other_fields:
+            print(field.text)
+            if len(field.find_elements(By.NAME, 'attributes.Country/Region of Manufacture')) > 0:
+                while True:
+                    try:
+                        driver.find_element(By.NAME, 'attributes.Country/Region of Manufacture').click()
+                        time.sleep(0.1)
+                        driver.find_element(By.NAME, 'search-box-attributesCountryRegionofManufacture').send_keys("Germany")
+                        # click name "searchedOptions-attributesCountryRegionofManufacture"
+                        driver.find_element(By.NAME, 'searchedOptions-attributesCountryRegionofManufacture').click()
+                        break
+                    except:
+                        time.sleep(0.1)
+                options = field.find_elements(By.CLASS_NAME, 'se-filter-menu-button__add-custom-value')
+                if len(options) > 0:
+                    options[0].click()
     except Exception as e:
         print(f"Error while adding specifics: {e}")
 
@@ -355,7 +370,9 @@ def add_shipping():
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__shipping'))
         time.sleep(1)
         shipping_block = driver.find_element(By.CLASS_NAME, 'summary__shipping')
-        # class="summary__shipping--section-container shipping-settings-container"
+        shipping_block.find_element(By.CLASS_NAME, 'summary__shipping--section').find_element(By.CLASS_NAME, 'listbox-button__control').click()
+        driver.find_elements(By.CLASS_NAME, 'summary__shipping--field')[1].find_elements(By.CLASS_NAME, 'listbox__value')[1].click()
+        time.sleep(1)
         preferences_block = shipping_block.find_element(By.CLASS_NAME, 'shipping-settings-container')
         button = preferences_block.find_element(By.TAG_NAME, 'button')
         button.click()
@@ -480,7 +497,7 @@ def list_products_in_ebay(products):
             time.sleep(2)
             add_title(product)
             time.sleep(2)
-            add_category(product)
+            add_category()
             time.sleep(2)
             add_specifics(product)
             time.sleep(2)
@@ -766,7 +783,7 @@ while True:
                         time.sleep(2)
                         add_title(product)
                         time.sleep(2)
-                        add_category(product)
+                        add_category()
                         time.sleep(2)
                         add_specifics(product)
                         time.sleep(2)
