@@ -376,9 +376,14 @@ def add_shipping():
         preferences_block = shipping_block.find_element(By.CLASS_NAME, 'shipping-settings-container')
         button = preferences_block.find_element(By.TAG_NAME, 'button')
         button.click()
-        # itemLocationCountry
+        handling_time_block = driver.find_element(By.CLASS_NAME, 'handling-time')
+        for i in range(5):
+            if len(handling_time_block.find_elements(By.TAG_NAME, 'button')) > 0:
+                break
+            time.sleep(1)
+        handling_time_block.find_element(By.TAG_NAME, 'button').click()
+        handling_time_block.find_elements(By.CLASS_NAME, 'listbox__option')[3].click()
         prefecences_settings = driver.find_element(By.CLASS_NAME, 'se-panel-container__body')
-        # itemLocationCountry
         country_input = prefecences_settings.find_element(By.NAME, 'itemLocationCountry')
         country_input.click()
         time.sleep(0.1)
@@ -399,6 +404,9 @@ def add_shipping():
         location_city_state.clear()
         location_city_state.send_keys('Ahlen')
         driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').find_element(By.TAG_NAME, 'button').click()
+        time.sleep(1)
+        # name packageDepth
+        driver.find_element(By.NAME, 'packageDepth').click()
     except Exception as e:
         print(f"Error while adding shipping: {e}")
 
