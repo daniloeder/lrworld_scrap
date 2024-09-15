@@ -356,8 +356,19 @@ def add_pricing(product):
     try:
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__price'))
         time.sleep(1)
-        price_block = driver.find_element(By.CLASS_NAME, 'summary__price')
+        price_block = driver.find_element(By.CLASS_NAME, 'summary__container')
+        # button
+        price_block.find_element(By.CLASS_NAME, 'summary__price-fields').find_element(By.TAG_NAME, 'button').click()
+        # listbox__options
+        for option in price_block.find_elements(By.CLASS_NAME, 'listbox__option'):
+            if option.text == 'Buy It Now':
+                option.click()
+                break
         # get input with name 'price'
+        price_block.find_element(By.CLASS_NAME, 'summary__price-fields').find_element(By.TAG_NAME, 'button').click()
+        while len(price_block.find_elements(By.NAME, 'price')) == 0:
+            time.sleep(0.5)
+        time.sleep(0.1)
         price_input = price_block.find_element(By.NAME, 'price')
         price_input.send_keys(str(product['price']))
     except Exception as e:
