@@ -354,6 +354,8 @@ def add_pricing(product):
     # ADD PRICING
     print('Setting price...')
     try:
+        while len(driver.find_elements(By.CLASS_NAME, 'summary__price')) == 0:
+            time.sleep(1)
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__price'))
         time.sleep(1)
         price_block = driver.find_element(By.CLASS_NAME, 'summary__container')
@@ -381,43 +383,77 @@ def add_shipping():
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__shipping'))
         time.sleep(1)
         shipping_block = driver.find_element(By.CLASS_NAME, 'summary__shipping')
-        shipping_block.find_element(By.CLASS_NAME, 'summary__shipping--section').find_element(By.CLASS_NAME, 'listbox-button__control').click()
-        driver.find_elements(By.CLASS_NAME, 'summary__shipping--field')[1].find_elements(By.CLASS_NAME, 'listbox__value')[1].click()
-        time.sleep(1)
-        preferences_block = shipping_block.find_element(By.CLASS_NAME, 'shipping-settings-container')
-        button = preferences_block.find_element(By.TAG_NAME, 'button')
-        button.click()
-        handling_time_block = driver.find_element(By.CLASS_NAME, 'handling-time')
-        for i in range(5):
-            if len(handling_time_block.find_elements(By.TAG_NAME, 'button')) > 0:
-                break
+        try:
+            select_block = shipping_block.find_element(By.CLASS_NAME, 'summary__shipping--section')
+            select = select_block.find_element(By.CLASS_NAME, 'listbox-button__control')
+            select.click()
+            time.sleep(0.1)
+            options = driver.find_elements(By.CLASS_NAME, 'summary__shipping--field')
+            option = options[1].find_elements(By.CLASS_NAME, 'listbox__value')
+            option[1].click()
+        except Exception as e:
+            print("Error:", e)
             time.sleep(1)
-        handling_time_block.find_element(By.TAG_NAME, 'button').click()
-        handling_time_block.find_elements(By.CLASS_NAME, 'listbox__option')[3].click()
-        prefecences_settings = driver.find_element(By.CLASS_NAME, 'se-panel-container__body')
-        country_input = prefecences_settings.find_element(By.NAME, 'itemLocationCountry')
-        country_input.click()
-        time.sleep(0.1)
-        while country_input.get_attribute('value'):
-            country_input.send_keys('\b')
-        country_input.clear()
-        time.sleep(0.1)
-        country_input.send_keys('Germany')
-        time.sleep(0.1)
-        # combobox__option
-        prefecences_settings.find_element(By.CLASS_NAME, 'combobox__option').click()
-        # itemLocation
-        if len(prefecences_settings.find_elements(By.NAME, 'itemLocation')) > 0:
-            location_input = prefecences_settings.find_element(By.NAME, 'itemLocation')
-            location_input.send_keys('d-59227')
-        # itemLocationCityState
-        location_city_state = prefecences_settings.find_element(By.NAME, 'itemLocationCityState')
-        location_city_state.clear()
-        location_city_state.send_keys('Ahlen')
-        driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').find_element(By.TAG_NAME, 'button').click()
-        time.sleep(1)
-        # name packageDepth
-        driver.find_element(By.NAME, 'packageDepth').click()
+        try:
+            preferences_block = shipping_block.find_element(By.CLASS_NAME, 'shipping-settings-container')
+            button = preferences_block.find_element(By.TAG_NAME, 'button')
+            button.click()
+        except Exception as e:
+            print("Error:", e)
+        try:
+            handling_time_block = driver.find_element(By.CLASS_NAME, 'handling-time')
+            for i in range(5):
+                if len(handling_time_block.find_elements(By.TAG_NAME, 'button')) > 0:
+                    break
+                time.sleep(1)
+            button = handling_time_block.find_element(By.TAG_NAME, 'button')
+            for _ in range(10):
+                try:
+                    button.click()
+                    time.sleep(0.1)
+                    options = handling_time_block.find_elements(By.CLASS_NAME, 'listbox__option')
+                    time.sleep(1)
+                    options[3].click()
+                    break
+                except:
+                    pass
+            button.click()
+            driver.find_element(By.CLASS_NAME, 'textual-display').click()
+            time.sleep(0.1)
+        except Exception as e:
+            print("Error", e)
+        
+        try:
+            prefecences_settings = driver.find_element(By.CLASS_NAME, 'se-panel-container__body')
+            country_input = prefecences_settings.find_element(By.NAME, 'itemLocationCountry')
+            country_input.click()
+            if True:
+                time.sleep(0.1)
+                while country_input.get_attribute('value'):
+                    country_input.send_keys('\b')
+                country_input.clear()
+                time.sleep(0.1)
+                country_input.send_keys('Germany')
+                time.sleep(0.1)
+                # combobox__option
+                prefecences_settings.find_element(By.CLASS_NAME, 'combobox__option').click()
+                # itemLocation
+                if len(prefecences_settings.find_elements(By.NAME, 'itemLocation')) > 0:
+                    location_input = prefecences_settings.find_element(By.NAME, 'itemLocation')
+                    location_input.send_keys('d-59227')
+                # itemLocationCityState
+                location_city_state = prefecences_settings.find_element(By.NAME, 'itemLocationCityState')
+                location_city_state.clear()
+                location_city_state.send_keys('Ahlen')
+                driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').find_element(By.TAG_NAME, 'button').click()
+                time.sleep(1)
+        except Exception as e:
+            print("Error:", e)
+        try:
+            # name packageDepth
+            driver.find_element(By.NAME, 'packageDepth').click()
+        except Exception as e:
+            print("Error:", e)
     except Exception as e:
         print(f"Error while adding shipping: {e}")
 
@@ -699,11 +735,11 @@ def get_subcategorie_products():
 
 def scrap_all_subcategories(category):
     to_scrap = []
-    for sub_category in category['sub_categories']:
-        for class_item in sub_category['classes']:
+    for sub_category in category['sub_categories'][:1]:
+        for class_item in sub_category['classes'][:1]:
             driver.get(class_item['url'])
             time.sleep(1)
-            new_products = get_subcategorie_products()
+            new_products = get_subcategorie_products()[:1]
             for product in new_products:
                 product['class'] = class_item['name']
                 to_scrap.append(product)
@@ -771,7 +807,6 @@ while True:
                             while not loged_in:
                                 loged_in = ebay_login()
                             list_products_in_ebay(products)
-                            a = 0/0
                     else:
                         print("No products to scrap found!")
                 previous_url = driver.current_url
