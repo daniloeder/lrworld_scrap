@@ -45,18 +45,25 @@ def ebay_login():
 
 def check_for_template_list():
     templates = []
-    block = driver.find_elements(By.CLASS_NAME, 'template-list')
-    if len(block) > 0:
-        template_list = driver.find_element(By.CLASS_NAME, 'template-list').find_elements(By.TAG_NAME, 'ul')
-        if len(template_list) > 0:
-            templates = driver.find_element(By.CLASS_NAME, 'template-list').find_element(By.TAG_NAME, 'ul').find_elements(By.TAG_NAME, 'li')
-    if len(templates):
-        print("Templates...")
-        for template in templates:
-            print(template.text)
+    main = driver.find_element(By.ID, 'mainContent')
+    if len(driver.find_elements(By.CLASS_NAME, 'template-list__title')) > 0:
+        return driver.find_elements(By.CLASS_NAME, 'template-list__title')
     else:
-        print("No template found...")
-    return templates
+        print("GENERATING TEMPLATES FILE")
+        write_to_file('templates.html', main.get_attribute('outerHTML'))
+    if False:
+        block = driver.find_elements(By.CLASS_NAME, 'template-list')
+        if len(block) > 0:
+            template_list = driver.find_element(By.CLASS_NAME, 'template-list').find_elements(By.TAG_NAME, 'ul')
+            if len(template_list) > 0:
+                templates = driver.find_element(By.CLASS_NAME, 'template-list').find_element(By.TAG_NAME, 'ul').find_elements(By.TAG_NAME, 'li')
+        if len(templates):
+            print("Templates...")
+            for template in templates:
+                print(template.text)
+        else:
+            print("No template found...")
+        return templates
 
 def add_images(product):
     print('Adding images...')
@@ -134,11 +141,8 @@ def list_products_in_ebay(products):
     driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
     time.sleep(3)
     i = 1
-    main = driver.find_element(By.ID, 'mainContent')
-    write_to_file('templates.html', main.get_attribute('outerHTML'))
-    return
-    templates_list = check_for_template_list()
-    if len(templates_list) == 0:
+    #templates_list = check_for_template_list()
+    if False:# len(templates_list) == 0:
         try:
             print('No Templates Found, creating...')
             driver.get('https://www.ebay.ch/lstng/template?mode=AddItem')
