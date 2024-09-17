@@ -136,6 +136,10 @@ def add_pricing(product):
     except Exception as e:
         print(f"Error while adding pricing: {e}")
 
+def write_to_file(filename, data):
+    with open(filename, 'w') as file:
+        file.write(data)
+
 def add_shipping():
     # ADD SHIPPING
     print('Setting shipping...')
@@ -143,6 +147,7 @@ def add_shipping():
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__shipping'))
         time.sleep(1)
         shipping_block = driver.find_element(By.CLASS_NAME, 'summary__shipping')
+        write_to_file('shipping.html', shipping_block.get_attribute('outerHTML'))
         try:
             print("Get summary__shipping--section (select_block)")
             select_block = shipping_block.find_element(By.CLASS_NAME, 'summary__shipping--section')
@@ -197,6 +202,7 @@ def add_shipping():
         
         try:
             prefecences_settings = driver.find_element(By.CLASS_NAME, 'se-panel-container__body')
+            write_to_file('prefecences.html', prefecences_settings.get_attribute('outerHTML'))
             country_input = prefecences_settings.find_element(By.NAME, 'itemLocationCountry')
             country_input.click()
             if True:
