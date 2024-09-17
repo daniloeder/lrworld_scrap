@@ -134,6 +134,9 @@ def list_products_in_ebay(products):
     driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
     time.sleep(3)
     i = 1
+    main = driver.find_element(By.ID, 'mainContent')
+    write_to_file('templates.html', main.get_attribute('outerHTML'))
+    return
     templates_list = check_for_template_list()
     if len(templates_list) == 0:
         try:
@@ -528,6 +531,6 @@ for product in products:
 
 #driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
 
+#list_products_in_ebay(products)
+
 list_products_in_ebay(products)
-
-
