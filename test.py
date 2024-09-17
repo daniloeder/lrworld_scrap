@@ -58,6 +58,78 @@ def check_for_template_list():
         print("No template found...")
     return templates
 
+def add_images(product):
+    print('Adding images...')
+    try:
+        # ADD IMAGES
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'summary__photos')))
+        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__photos'))
+        time.sleep(1)
+        if len(driver.find_elements(By.CLASS_NAME, 'uploader-thumbnails__container-empty--importFromWeb')) == 0:
+            driver.find_elements(By.CLASS_NAME, 'se-expand-button__button-text')[0].click()
+            driver.find_element(By.NAME, 'photoUploadWebPref').click()
+            driver.find_elements(By.CLASS_NAME, 'se-expand-button__button-text')[0].click()
+        driver.find_element(By.CLASS_NAME, 'uploader-thumbnails__container-empty--importFromWeb').click()
+        if len(driver.find_elements(By.CLASS_NAME, 'se-panel-container')) == 0:
+            print('No se-panel-container found, skipping...')
+            return
+        driver.find_element(By.CLASS_NAME, 'se-panel-container').click()
+        for index, image_url in enumerate(product['images']):
+            if index > 0:
+                driver.find_element(By.NAME, 'addAdditional').click()
+            input_blocks = driver.find_elements(By.CLASS_NAME, 'url-row')
+            input_blocks[index].find_element(By.TAG_NAME, 'input').send_keys(image_url)
+        # done
+        driver.find_element(By.CLASS_NAME, 'se-panel-container__header').find_element(By.TAG_NAME, 'button').click()
+    except Exception as e:
+        print(f"Error while adding images: {e}")
+
+def add_title(product):
+    # ADD TITLE
+    print('Adding title...')
+    try:
+        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__title'))
+        time.sleep(1)
+        title_block = driver.find_element(By.CLASS_NAME, 'summary__title').find_element(By.CLASS_NAME, 'smry--section')
+        title_input = title_block.find_element(By.TAG_NAME, 'input')
+        title_input.clear()
+        title_input.send_keys(product['name'])
+    except Exception as e:
+        print(f"Error while adding title: {e}")
+
+def add_description(product):
+    # ADD DESCRIPTION
+    print('Adding description...')
+    try:
+        description_block = driver.find_element(By.CLASS_NAME, 'summary__description')
+        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", description_block)
+        time.sleep(0.5)
+        if len(driver.find_elements(By.ID, 'se-rte-frame__summary')) > 0:
+            iframe = driver.find_element(By.ID, 'se-rte-frame__summary')
+            driver.switch_to.frame(iframe)
+            # Locate the contenteditable div inside the iframe
+            editor_div = driver.find_element(By.CSS_SELECTOR, 'div[contenteditable="true"]')
+            # Set the HTML content directly using JavaScript
+            driver.execute_script(f"arguments[0].innerHTML = `{product['description']}`;", editor_div)
+            time.sleep(0.1)
+            driver.find_element(By.TAG_NAME, 'body').click()
+            time.sleep(0.1)
+            driver.switch_to.default_content()
+        else:
+            print('No description editor found, skipping...')
+    except Exception as e:
+        print(f"Error while adding description: {e}")
+
+def check_close_category():
+    # lightbox-dialog__main
+    while len(driver.find_elements(By.CLASS_NAME, 'lightbox-dialog__main')) > 0:
+        for _ in range(5):
+            try:
+                driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').click()
+                break
+            except:
+                time.sleep(1)
+
 def list_products_in_ebay(products):
     driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
     time.sleep(3)
@@ -100,10 +172,24 @@ def list_products_in_ebay(products):
         if len(driver.find_elements(By.CLASS_NAME, 'template-list__list')) > 0:
             templates_list[0].click()
             time.sleep(1)
+            add_category()
+            time.sleep(2)
+            check_close_category()
+            add_images(product)
+            time.sleep(2)
+            check_close_category()
+            add_title(product)
+            time.sleep(2)
+            check_close_category()
+            add_specifics()
+            time.sleep(2)
+            check_close_category()
+            add_description(product)
+            time.sleep(2)
+            check_close_category()
             add_pricing(product)
             time.sleep(2)
-            add_shipping()
-            print("Done!")
+            check_close_category()
             driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
             print(f"Product {product['name']} listed!\n\n")
         else:
@@ -126,13 +212,13 @@ def add_pricing(product):
             button.click()
         except:
             for button in price_block.find_elements(By.TAG_NAME, 'button'):
-                if button.text == 'Auction':
+                if button.text == 'Auktion':
                     button.click()
                     break
-        if button.text != 'Buy It Now':
+        if button.text != 'Sofort-Kaufen':
             # listbox__options
             for option in price_block.find_elements(By.CLASS_NAME, 'listbox__option'):
-                if option.text == 'Buy It Now':
+                if option.text == 'Sofort-Kaufen':
                     option.click()
                     break
         # get input with name 'price'
@@ -286,31 +372,45 @@ def add_shipping():
 def add_category():
     print('Selecting category...')
     try:
+        while len(driver.find_elements(By.CLASS_NAME, 'summary__category')) == 0:
+            time.sleep(0.5)
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__category'))
         time.sleep(1)
         category_block = driver.find_element(By.CLASS_NAME, 'summary__category')
         time.sleep(0.1)
-        while True:
+        # categoryId
+        if category_block.find_element(By.NAME, 'categoryId').text == "Sonstige":
+            #return
+            pass
+        while len(driver.find_elements(By.CLASS_NAME, 'lightbox-dialog__main')) == 0:
             try:
                 category_block.find_element(By.TAG_NAME, 'button').click()
+                time.sleep(1)
                 break
             except:
                 time.sleep(0.1)
         time.sleep(1)
-        driver.find_element(By.CLASS_NAME, 'se-field-card').click()
-        driver.find_element(By.CLASS_NAME, 'textbox__control').send_keys('Other Health & Beauty')
-        time.sleep(2)
+        # category-picker
+        category_picker = driver.find_element(By.CLASS_NAME, 'lightbox-dialog__main')
+        while len(category_picker.find_elements(By.CLASS_NAME, 'textbox__control')) == 0:
+            category_picker.find_element(By.NAME, 'primaryCategory').click()
+            time.sleep(3)
+        category_picker.find_element(By.CLASS_NAME, 'textbox__control').send_keys('Beauty & Gesundheit > Sonstige')
+        for _ in range(50):
+            if len(driver.find_elements(By.NAME, 'categoryId')) > 2:
+                break
+            time.sleep(0.1)
         for option in driver.find_elements(By.NAME, 'categoryId'):
             if option.get_attribute('value') == '1277':
                 option.click()
                 break
-        for _ in range(5):
+        for _ in range(10):
             try:
-                time.sleep(1)
                 driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').click()
                 break
             except:
                 pass
+            time.sleep(0.5)
         while len(driver.find_elements(By.CLASS_NAME, 'lightbox-dialog__main')) > 0:
             time.sleep(0.2)
     except Exception as e:
@@ -428,10 +528,6 @@ for product in products:
 
 #driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
 
-#list_products_in_ebay(products)
-#shipping_policy()
-
-create_template()
-
+list_products_in_ebay(products)
 
 
