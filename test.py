@@ -12,19 +12,19 @@ USER_PASSWORD = ''
 def ebay_login():
     print('Logging in to eBay...')
     try:
-        driver.get('https://ebay.com/')
+        driver.get('https://ebay.ch/')
         time.sleep(1)
         try:
-            if 'signin.ebay.com' not in driver.find_element(By.ID, 'gh-top').find_element(By.TAG_NAME, 'a').get_attribute('href') and 'captcha' not in driver.current_url:
+            if 'signin.ebay.ch' not in driver.find_element(By.ID, 'gh-top').find_element(By.TAG_NAME, 'a').get_attribute('href') and 'captcha' not in driver.current_url:
                 return True
         except:
             pass
-        driver.get('https://signin.ebay.com/')
+        driver.get('https://signin.ebay.ch/')
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'userid')))
         if len(driver.find_elements(By.ID, 'userid')) > 0:
             if not USER_EMAIL:
                 print("Missing eBay login email, fill it manually...\n\n")
-                while 'signin.ebay.com' in driver.current_url:
+                while 'signin.ebay.ch' in driver.current_url:
                     time.sleep(1)
                 return True
             else:
@@ -59,14 +59,14 @@ def check_for_template_list():
     return templates
 
 def list_products_in_ebay(products):
-    driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+    driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
     time.sleep(3)
     i = 1
     templates_list = check_for_template_list()
     if len(templates_list) == 0:
         try:
             print('No Templates Found, creating...')
-            driver.get('https://www.ebay.com/lstng/template?mode=AddItem')
+            driver.get('https://www.ebay.ch/lstng/template?mode=AddItem')
             time.sleep(1)
             # templateName
             for _ in range(8):
@@ -75,14 +75,14 @@ def list_products_in_ebay(products):
                 time.sleep(1)
             if len(driver.find_elements(By.NAME, 'templateName')) == 0:
                 print('Cannot create template, create one and try again...')
-                driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+                driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
                 #return
             title_input = driver.find_element(By.NAME, 'templateName')
             title_input.clear()
             title_input.send_keys("New Template")
             driver.find_element(By.CLASS_NAME, 'btn--large').click()
             time.sleep(3)
-            driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+            driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
             time.sleep(2)
         except Exception as e:
             print(f"Error while creating template, create one and try again: {e}")
@@ -93,7 +93,7 @@ def list_products_in_ebay(products):
     print("Templage found, listing products...")
     for product in products:
         print(f"{i}/{len(products)} Listing product: {product['name']}")
-        driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+        driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
         templates_list = check_for_template_list()
         time.sleep(1)
         # template-list__list
@@ -377,7 +377,7 @@ def add_specifics():
 
 def create_template():
     try:
-        driver.get('https://www.ebay.com/lstng/template?mode=AddItem')
+        driver.get('https://www.ebay.ch/lstng/template?mode=AddItem')
         time.sleep(1)
         # templateName
         for _ in range(8):
@@ -386,14 +386,11 @@ def create_template():
             time.sleep(1)
         if len(driver.find_elements(By.NAME, 'templateName')) == 0:
             print('Cannot create template, create one and try again...')
-            driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+            driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
             #return
         title_input = driver.find_element(By.NAME, 'templateName')
         title_input.clear()
         title_input.send_keys("Set Template")
-        add_category()
-        add_condition()
-        add_specifics()
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__shipping'))
     except Exception as e:
         print(f"Error while creating template, create one and try again: {e}")
@@ -429,7 +426,7 @@ while not ebay_login():
 for product in products:
     break
 
-#driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+#driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
 
 #list_products_in_ebay(products)
 #shipping_policy()
