@@ -283,6 +283,122 @@ def add_shipping():
     except Exception as e:
         print(f"Error while adding shipping: {e}")
 
+def add_category():
+    print('Selecting category...')
+    try:
+        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__category'))
+        time.sleep(1)
+        category_block = driver.find_element(By.CLASS_NAME, 'summary__category')
+        time.sleep(0.1)
+        while True:
+            try:
+                category_block.find_element(By.TAG_NAME, 'button').click()
+                break
+            except:
+                time.sleep(0.1)
+        time.sleep(1)
+        driver.find_element(By.CLASS_NAME, 'se-field-card').click()
+        driver.find_element(By.CLASS_NAME, 'textbox__control').send_keys('Other Health & Beauty')
+        time.sleep(2)
+        for option in driver.find_elements(By.NAME, 'categoryId'):
+            if option.get_attribute('value') == '1277':
+                option.click()
+                break
+        for _ in range(5):
+            try:
+                time.sleep(1)
+                driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').click()
+                break
+            except:
+                pass
+        while len(driver.find_elements(By.CLASS_NAME, 'lightbox-dialog__main')) > 0:
+            time.sleep(0.2)
+    except Exception as e:
+        print(f"Error while adding category: {e}")
+
+def add_condition():
+    # ADD CONDITION
+    print('Selecting condition...')
+    try:
+        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__condition'))
+        time.sleep(1)
+        condition_block = driver.find_element(By.CLASS_NAME, 'summary__condition')
+        # get condition-recommendation-value btn
+        options = condition_block.find_elements(By.CLASS_NAME, 'condition-recommendation-value')
+        if len(options) > 0:
+            options[0].click()
+    except Exception as e:
+        print(f"Error while adding condition: {e}")
+
+def add_specifics():
+    # ITEM SPECIFICS
+    print('Adding specifics...')
+    try:
+        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__attributes--container'))
+        time.sleep(1)
+        specifics_block = driver.find_element(By.CLASS_NAME, 'summary__attributes--container')
+        required = specifics_block.find_elements(By.CLASS_NAME, 'summary__attributes--section-container')[0]
+        required_fields = required.find_elements(By.CLASS_NAME, 'summary__attributes--fields')
+        other = specifics_block.find_elements(By.CLASS_NAME, 'summary__attributes--section-container')[1]
+        other_fields = other.find_elements(By.CLASS_NAME, 'summary__attributes--fields')
+        for field in required_fields:
+            if len(field.find_elements(By.NAME, 'attributes.Brand')) > 0:
+                while True:
+                    try:
+                        driver.find_element(By.NAME, 'attributes.Brand').click()
+                        time.sleep(0.1)
+                        driver.find_element(By.NAME, 'search-box-attributesBrand').send_keys("LR World")
+                        break
+                    except:
+                        time.sleep(0.1)
+                options = field.find_elements(By.CLASS_NAME, 'se-filter-menu-button__add-custom-value')
+                if len(options) > 0:
+                    options[0].click()
+        for field in other_fields:
+            print(field.text)
+            if len(field.find_elements(By.NAME, 'attributes.Country/Region of Manufacture')) > 0:
+                while True:
+                    try:
+                        driver.find_element(By.NAME, 'attributes.Country/Region of Manufacture').click()
+                        time.sleep(0.1)
+                        driver.find_element(By.NAME, 'search-box-attributesCountryRegionofManufacture').send_keys("Germany")
+                        # click name "searchedOptions-attributesCountryRegionofManufacture"
+                        driver.find_element(By.NAME, 'searchedOptions-attributesCountryRegionofManufacture').click()
+                        break
+                    except:
+                        time.sleep(0.1)
+                options = field.find_elements(By.CLASS_NAME, 'se-filter-menu-button__add-custom-value')
+                if len(options) > 0:
+                    options[0].click()
+    except Exception as e:
+        print(f"Error while adding specifics: {e}")
+
+
+
+def create_template():
+    try:
+        driver.get('https://www.ebay.com/lstng/template?mode=AddItem')
+        time.sleep(1)
+        # templateName
+        for _ in range(8):
+            if len(driver.find_elements(By.NAME, 'templateName')) > 0:
+                break
+            time.sleep(1)
+        if len(driver.find_elements(By.NAME, 'templateName')) == 0:
+            print('Cannot create template, create one and try again...')
+            driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+            #return
+        title_input = driver.find_element(By.NAME, 'templateName')
+        title_input.clear()
+        title_input.send_keys("Set Template")
+        add_category()
+        add_condition()
+        add_specifics()
+        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__shipping'))
+    except Exception as e:
+        print(f"Error while creating template, create one and try again: {e}")
+
+
 # Automatically download and use the correct version of ChromeDriver
 options = webdriver.ChromeOptions()
 options.add_argument("--enable-features=UseOzonePlatform")
@@ -313,10 +429,12 @@ while not ebay_login():
 for product in products:
     break
 
-driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+#driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
 
-list_products_in_ebay(products)
-shipping_policy()
+#list_products_in_ebay(products)
+#shipping_policy()
+
+create_template()
 
 
 
