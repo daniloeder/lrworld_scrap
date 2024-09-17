@@ -147,22 +147,24 @@ def add_shipping():
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__shipping'))
         time.sleep(1)
         shipping_block = driver.find_element(By.CLASS_NAME, 'summary__shipping')
-        write_to_file('shipping.html', shipping_block.get_attribute('outerHTML'))
         try:
             print("Get summary__shipping--section (select_block)")
             select_block = shipping_block.find_element(By.CLASS_NAME, 'summary__shipping--section')
-            print("Get listbox-button__control (select)")
-            select = select_block.find_element(By.CLASS_NAME, 'listbox-button__control')
+            print("Get se-field--fluid")
+            select = select_block.find_element(By.CLASS_NAME, 'se-field--fluid')
             print("Clicking...")
             select.click()
             time.sleep(0.1)
             print("Get summary__shipping--field")
-            options = driver.find_elements(By.CLASS_NAME, 'summary__shipping--field')
-            print("Get listbox__value", len(options))
-            option = options[1].find_elements(By.CLASS_NAME, 'listbox__value')
-            print("Clicking...", len(option))
-            option[1].click()
+            options = select_block.find_elements(By.CLASS_NAME, 'listbox__option')
+            print("Clicking... 2nd option")
+            options[1].click()
+            time.sleep(0.1)
+            print("Clicking select again...")
+            select.click()
         except Exception as e:
+            print("WRITING SHIPPING TO FILE")
+            write_to_file('shipping.html', shipping_block.get_attribute('outerHTML'))
             print("Error:", e)
             time.sleep(1)
         try:
@@ -171,9 +173,10 @@ def add_shipping():
             button.click()
         except Exception as e:
             print("Error:", e)
+
         try:
             print("Get handlig-time block")
-            handling_time_block = driver.find_element(By.CLASS_NAME, 'handling-time')
+            handling_time_block = driver.find_element(By.CLASS_NAME, 'se-panel-container__body').find_element(By.TAG_NAME, 'div')
             for i in range(5):
                 if len(handling_time_block.find_elements(By.TAG_NAME, 'button')) > 0:
                     print("Button found")
@@ -202,9 +205,9 @@ def add_shipping():
         
         try:
             prefecences_settings = driver.find_element(By.CLASS_NAME, 'se-panel-container__body')
-            write_to_file('prefecences.html', prefecences_settings.get_attribute('outerHTML'))
             country_input = prefecences_settings.find_element(By.NAME, 'itemLocationCountry')
             country_input.click()
+            print("Ok, clicked")
             if True:
                 time.sleep(0.1)
                 while country_input.get_attribute('value'):
@@ -213,6 +216,7 @@ def add_shipping():
                 time.sleep(0.1)
                 country_input.send_keys('Germany')
                 time.sleep(0.1)
+                print("Ok, clicked 2")
                 # combobox__option
                 prefecences_settings.find_element(By.CLASS_NAME, 'combobox__option').click()
                 # itemLocation
@@ -223,9 +227,12 @@ def add_shipping():
                 location_city_state = prefecences_settings.find_element(By.NAME, 'itemLocationCityState')
                 location_city_state.clear()
                 location_city_state.send_keys('Ahlen')
+                print("Ok, clicked 3")
                 driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').find_element(By.TAG_NAME, 'button').click()
                 time.sleep(1)
         except Exception as e:
+            print("WRITING PREFECENCES TO FILE")
+            write_to_file('prefecences.html', prefecences_settings.get_attribute('outerHTML'))
             print("Error:", e)
         try:
             # name packageDepth
