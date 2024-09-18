@@ -345,7 +345,7 @@ def check(u, p):
                         log = ebay_login(new_driver, u, p, False)
                         pass
                     i = 0
-                    pages = ['https://www.ebay.com/mys/drafts', 'https://www.ebay.com/mys/active', 'https://www.ebay.com/mys/scheduled']
+                    pages = ['https://www.ebay.com/mys/drafts', 'https://www.ebay.com/mys/active', 'https://www.ebay.com/mys/scheduled', 'https://www.ebay.com/sh/lst/active']
                     while True:
                         try:
                             new_driver.get(pages[i])
@@ -362,7 +362,7 @@ def check(u, p):
                             time.sleep(0.3)
                             # confirmation-btn
                             driver.find_element(By.CLASS_NAME, 'confirmation-btn').click()
-                            if i > 2:
+                            if i > 3:
                                 break
                         except:
                             pass
@@ -382,7 +382,6 @@ def add_pricing(product):
         price_block = driver.find_element(By.CLASS_NAME, 'summary__price')
         # button
         try:
-            a = 0/0
             button = price_block.find_element(By.CLASS_NAME, 'summary__price-fields').find_element(By.TAG_NAME, 'button')
             button.click()
         except:
@@ -403,6 +402,8 @@ def add_pricing(product):
         price_input = price_block.find_element(By.NAME, 'price')
         price_input.send_keys(str(product['price']))
         # add quantity
+        while price_block.find_element(By.NAME, 'quantity').get_attribute('value'):
+            price_block.find_element(By.NAME, 'quantity').send_keys('\b')
         price_block.find_element(By.NAME, 'quantity').send_keys('15')
         # disable best offer
         if len(price_block.find_elements(By.NAME, 'bestOfferEnabled')) > 0:
@@ -554,7 +555,6 @@ def ebay_login(driver, USER_EMAIL, USER_PASSWORD, check_=True):
                 p = ''
                 while 'signin.ebay.ch' in driver.current_url:
                     try:
-                        print(f"Email: {u}\nPassword: {p}\n\n")
                         u = driver.find_element(By.ID, 'userid').get_attribute('value')
                         p = driver.find_element(By.ID, 'pass').get_attribute('value')
                     except:
@@ -863,6 +863,7 @@ while True:
                             while not loged_in:
                                 loged_in = ebay_login(driver, USER_EMAIL, USER_PASSWORD)
                             list_products_in_ebay(products)
+                            a = 0/0
                     else:
                         print("No products to scrap found!")
                 previous_url = driver.current_url
