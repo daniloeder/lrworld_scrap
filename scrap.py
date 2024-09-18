@@ -381,14 +381,10 @@ def add_pricing(product):
         time.sleep(1)
         price_block = driver.find_element(By.CLASS_NAME, 'summary__price')
         # button
-        try:
-            button = price_block.find_element(By.CLASS_NAME, 'summary__price-fields').find_element(By.TAG_NAME, 'button')
-            button.click()
-        except:
-            for button in price_block.find_elements(By.TAG_NAME, 'button'):
-                if button.text == 'Auktion':
-                    button.click()
-                    break
+        for button in price_block.find_elements(By.TAG_NAME, 'button'):
+            if button.text == 'Auktion':
+                button.click()
+                break
         if button.text != 'Sofort-Kaufen':
             # listbox__options
             for option in price_block.find_elements(By.CLASS_NAME, 'listbox__option'):
@@ -401,16 +397,20 @@ def add_pricing(product):
         time.sleep(0.1)
         price_input = price_block.find_element(By.NAME, 'price')
         price_input.send_keys(str(product['price']))
+        time.sleep(0.1)
         # add quantity
         while price_block.find_element(By.NAME, 'quantity').get_attribute('value'):
             price_block.find_element(By.NAME, 'quantity').send_keys('\b')
-        price_block.find_element(By.NAME, 'quantity').send_keys('15')
+        time.sleep(0.1)
+        price_block.find_element(By.NAME, 'quantity').send_keys('5')
+        time.sleep(0.1)
         # disable best offer
         if len(price_block.find_elements(By.NAME, 'bestOfferEnabled')) > 0:
             price_block.find_element(By.NAME, 'bestOfferEnabled').click()
+        time.sleep(0.1)
     except Exception as e:
         print(f"Error while adding pricing: {e}")
-
+  
 def add_shipping():
     # ADD SHIPPING
     print('Setting shipping...')
@@ -419,20 +419,14 @@ def add_shipping():
         time.sleep(1)
         shipping_block = driver.find_element(By.CLASS_NAME, 'summary__shipping')
         try:
-            print("Get summary__shipping--section (select_block)")
             select_block = shipping_block.find_element(By.CLASS_NAME, 'summary__shipping--section')
             if len(select_block.find_elements(By.CLASS_NAME, 'se-field--fluid')) > 0:
-                print("Get se-field--fluid")
                 select = select_block.find_element(By.CLASS_NAME, 'se-field--fluid')
-                print("Clicking...")
                 select.click()
                 time.sleep(0.1)
-                print("Get summary__shipping--field")
                 options = select_block.find_elements(By.CLASS_NAME, 'listbox__option')
-                print("Clicking... 2nd option")
                 options[1].click()
                 time.sleep(0.1)
-                print("Clicking select again...")
                 select.click()
         except Exception as e:
             print("Error:", e)
@@ -445,30 +439,24 @@ def add_shipping():
             print("Error:", e)
         to_write = ''
         try:
-            print("Get handlig-time block")
             handling_time_block = driver.find_element(By.CLASS_NAME, 'se-panel-container__body').find_element(By.TAG_NAME, 'div')
             for i in range(5):
                 if len(handling_time_block.find_elements(By.TAG_NAME, 'button')) > 0:
-                    print("Button found")
                     break
                 time.sleep(1)
-            print("Get button")
             to_write = driver.find_element(By.CLASS_NAME, 'se-panel-container__body').get_attribute('outerHTML')
             button = handling_time_block.find_element(By.TAG_NAME, 'button')
-            print("Clicking...")
             for _ in range(10):
                 try:
                     button.click()
                     time.sleep(0.1)
                     options = handling_time_block.find_elements(By.CLASS_NAME, 'listbox__option')
-                    print("Clicking... 3th option")
                     time.sleep(1)
                     options[3].click()
                     break
                 except:
-                    print("Retrying...")
+                    pass
             button.click()
-            print("Handling time set")
             driver.find_element(By.CLASS_NAME, 'textual-display').click()
             time.sleep(0.1)
         except Exception as e:

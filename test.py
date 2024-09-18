@@ -198,14 +198,12 @@ def add_pricing(product):
         while price_block.find_element(By.NAME, 'quantity').get_attribute('value'):
             price_block.find_element(By.NAME, 'quantity').send_keys('\b')
         time.sleep(0.1)
-        price_block.find_element(By.NAME, 'quantity').send_keys('15')
+        price_block.find_element(By.NAME, 'quantity').send_keys('5')
         time.sleep(0.1)
         # disable best offer
         if len(price_block.find_elements(By.NAME, 'bestOfferEnabled')) > 0:
             price_block.find_element(By.NAME, 'bestOfferEnabled').click()
         time.sleep(0.1)
-        print("WRITING PRICING TO FILE")
-        write_to_file('pricing.html', price_block.get_attribute('outerHTML'))
     except Exception as e:
         write_to_file('pricing.html', price_block.get_attribute('outerHTML'))
         print(f"Error while adding pricing: {e}")
