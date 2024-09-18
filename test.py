@@ -127,44 +127,10 @@ def add_description(product):
     except Exception as e:
         print(f"Error while adding description: {e}")
 
-def check_close_category():
-    # lightbox-dialog__main
-    while len(driver.find_elements(By.CLASS_NAME, 'lightbox-dialog__main')) > 0:
-        for _ in range(5):
-            try:
-                driver.find_element(By.CLASS_NAME, 'se-panel-container__header-suffix').click()
-                break
-            except:
-                time.sleep(1)
-
 def list_products_in_ebay(products):
     driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
     time.sleep(3)
     i = 1
-    #templates_list = check_for_template_list()
-    if False:# len(templates_list) == 0:
-        try:
-            print('No Templates Found, creating...')
-            driver.get('https://www.ebay.ch/lstng/template?mode=AddItem')
-            time.sleep(1)
-            # templateName
-            for _ in range(8):
-                if len(driver.find_elements(By.NAME, 'templateName')) > 0:
-                    break
-                time.sleep(1)
-            if len(driver.find_elements(By.NAME, 'templateName')) == 0:
-                print('Cannot create template, create one and try again...')
-                driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
-                #return
-            title_input = driver.find_element(By.NAME, 'templateName')
-            title_input.clear()
-            title_input.send_keys("New Template")
-            driver.find_element(By.CLASS_NAME, 'btn--large').click()
-            time.sleep(3)
-            driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
-            time.sleep(2)
-        except Exception as e:
-            print(f"Error while creating template, create one and try again: {e}")
     templates_list = check_for_template_list()
     if len(templates_list) == 0:
         print('No template found...')
@@ -175,28 +141,21 @@ def list_products_in_ebay(products):
         driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
         templates_list = check_for_template_list()
         time.sleep(1)
-        # template-list__list
         if len(driver.find_elements(By.CLASS_NAME, 'template-list__list')) > 0:
             templates_list[0].click()
             time.sleep(1)
             add_category()
             time.sleep(2)
-            check_close_category()
             add_images(product)
             time.sleep(2)
-            check_close_category()
             add_title(product)
             time.sleep(2)
-            check_close_category()
             add_specifics()
             time.sleep(2)
-            check_close_category()
             add_description(product)
             time.sleep(2)
-            check_close_category()
             add_pricing(product)
             time.sleep(2)
-            check_close_category()
             driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
             print(f"Product {product['name']} listed!\n\n")
         else:
