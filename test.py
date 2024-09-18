@@ -193,6 +193,12 @@ def add_pricing(product):
         time.sleep(0.1)
         price_input = price_block.find_element(By.NAME, 'price')
         price_input.send_keys(str(product['price']))
+        # add quantity
+        price_block.find_element(By.NAME, 'quantity').clear()
+        price_block.find_element(By.NAME, 'quantity').send_keys('15')
+        # disable best offer
+        if len(price_block.find_elements(By.NAME, 'bestOfferEnabled')) > 0:
+            price_block.find_element(By.NAME, 'bestOfferEnabled').click()
     except Exception as e:
         print("WRITING PRICING TO FILE")
         write_to_file('pricing.html', price_block.get_attribute('outerHTML'))
@@ -346,8 +352,7 @@ def add_category():
         time.sleep(0.1)
         # categoryId
         if category_block.find_element(By.NAME, 'categoryId').text == "Sonstige":
-            #return
-            pass
+            return
         while len(driver.find_elements(By.CLASS_NAME, 'lightbox-dialog__main')) == 0:
             try:
                 category_block.find_element(By.TAG_NAME, 'button').click()

