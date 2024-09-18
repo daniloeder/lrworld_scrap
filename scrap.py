@@ -792,11 +792,11 @@ def get_subcategorie_products():
 
 def scrap_all_subcategories(category):
     to_scrap = []
-    for sub_category in category['sub_categories'][:2]:
-        for class_item in sub_category['classes'][:2]:
+    for sub_category in category['sub_categories']:
+        for class_item in sub_category['classes']:
             driver.get(class_item['url'])
             time.sleep(1)
-            new_products = get_subcategorie_products()[:3]
+            new_products = get_subcategorie_products()
             for product in new_products:
                 product['class'] = class_item['name']
                 to_scrap.append(product)
@@ -857,7 +857,7 @@ while True:
                     products_to_scrap = check_for_scrap_all(categories)
                     if products_to_scrap:
                         print(f"Done!, Found {len(products_to_scrap)} products to scrap")
-                        scraped_products = scrap_products(products_to_scrap[:3])
+                        scraped_products = scrap_products(products_to_scrap)
                         products.extend(scraped_products)
                         if len(products) > 0:
                             while not loged_in:
