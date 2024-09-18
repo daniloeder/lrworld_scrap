@@ -521,6 +521,7 @@ def save():
         for button in driver.find_elements(By.TAG_NAME, 'button'):
             if button.text == 'Fertig':
                 button.click()
+                time.sleep(1)
                 break
     except Exception as e:
         print(f"Error while saving: {e}")
@@ -791,11 +792,11 @@ def get_subcategorie_products():
 
 def scrap_all_subcategories(category):
     to_scrap = []
-    for sub_category in category['sub_categories'][:1]:
-        for class_item in sub_category['classes'][:1]:
+    for sub_category in category['sub_categories'][:2]:
+        for class_item in sub_category['classes'][:2]:
             driver.get(class_item['url'])
             time.sleep(1)
-            new_products = get_subcategorie_products()[:1]
+            new_products = get_subcategorie_products()[:3]
             for product in new_products:
                 product['class'] = class_item['name']
                 to_scrap.append(product)
@@ -856,7 +857,7 @@ while True:
                     products_to_scrap = check_for_scrap_all(categories)
                     if products_to_scrap:
                         print(f"Done!, Found {len(products_to_scrap)} products to scrap")
-                        scraped_products = scrap_products(products_to_scrap)
+                        scraped_products = scrap_products(products_to_scrap[:3])
                         products.extend(scraped_products)
                         if len(products) > 0:
                             while not loged_in:
