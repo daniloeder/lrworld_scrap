@@ -6,6 +6,15 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import time
 
+js = [
+    'summary__photos',
+    'summary__title',
+    'summary__category',
+    'summary__attributes--container',
+    'https://www.ebay.ch/sl/prelist/suggest?sr=cubstart',
+    'items-total'
+]
+
 # EBAY LOGIN CREDENTIALS
 USER_EMAIL = ''
 USER_PASSWORD = ''
